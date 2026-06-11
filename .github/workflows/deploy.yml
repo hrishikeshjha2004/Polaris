@@ -1,0 +1,90 @@
+name: Deploy
+
+# Manual, environment-gated deployment of contracts and frontend.
+# Secrets are read from GitHub Environments (configure under Settings → Environments):
+#   DEPLOYER_SECRET_KEY  – Stellar secret key (S...) that funds & owns the deploy
+#   USDC_CONTRACT_ID     – collateral token contract id
+#   VERCEL_TOKEN         – (optional) token for frontend deploy
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: "Target Stellar network"
+        type: choice
+        options: [testnet, mainnet]
+        default: testnet
+      deploy_frontend:
+        description: "Also deploy the frontend"
+        type: boolean
+        default: true
+
+jobs:
+  # ─── 1. Smart contracts ──────────────────────────────────────────────────────
+  deploy-contracts:
+    name: Deploy Soroban Contracts
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.network }}
+    outputs:
+      factory: ${{ steps.deploy.outputs.factory }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install Stellar CLI
+        run: cargo install --locked stellar-cli --version 21.5.0 || cargo install --locked stellar-cli
+
+      - name: Build WASMs
+        run: stellar contract build
+
+      - name: Deploy contracts
+        id: deploy
+        env:
+          STELLAR_NETWORK: ${{ inputs.network }}
+          DEPLOYER_SECRET_KEY: ${{ secrets.DEPLOYER_SECRET_KEY }}
+          USDC_CONTRACT_ID: ${{ secrets.USDC_CONTRACT_ID }}
+        run: |
+          bash scripts/deploy/deploy-testnet.sh
+          # The script writes addresses to .env.deployed; surface the factory id.
+          source .env.deployed
+          echo "factory=$FACTORY_CONTRACT_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Upload deployment manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-${{ inputs.network }}
+          path: |
+            .env.deployed
+            deployments/
+
+  # ─── 2. Frontend ─────────────────────────────────────────────────────────────
+  deploy-frontend:
+    name: Build & Deploy Frontend
+    needs: deploy-contracts
+    if: ${{ inputs.deploy_frontend }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.network }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (inject deployed addresses)
+        env:
+          NEXT_PUBLIC_STELLAR_NETWORK: ${{ inputs.network }}
+          NEXT_PUBLIC_FACTORY_CONTRACT_ID: ${{ needs.deploy-contracts.outputs.factory }}
+        run: npm run build --workspace=apps/web
+
+      - name: Deploy to Vercel
+        if: ${{ secrets.VERCEL_TOKEN != '' }}
+        run: npx vercel deploy --prod --yes --token "${{ secrets.VERCEL_TOKEN }}" apps/web
