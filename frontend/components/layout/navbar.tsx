@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Zap, Menu, TrendingUp, Droplets } from "lucide-react";
+import { Menu, TrendingUp, Droplets } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { WalletButton } from "@/components/wallet/wallet-button";
@@ -24,9 +24,11 @@ export function Navbar() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-bold text-lg group">
-          <div className="rounded-md bg-stellar p-1 group-hover:bg-stellar-dark transition-colors">
-            <Zap className="h-4 w-4 text-white" />
-          </div>
+          <img
+            src="/logo.svg"
+            alt="Polaris"
+            className="h-8 w-8 transition-transform duration-300 group-hover:rotate-90"
+          />
           <span>Polaris</span>
           <Badge variant="outline" className="ml-1 text-[10px] py-0 px-1.5 border-stellar/30 text-stellar-light hidden sm:inline-flex">
             TESTNET
@@ -73,9 +75,7 @@ export function Navbar() {
             </SheetTrigger>
             <SheetContent side="right" className="w-64 bg-background/95 backdrop-blur-md border-border/50">
               <div className="flex items-center gap-2 mb-8 mt-2">
-                <div className="rounded-md bg-stellar p-1">
-                  <Zap className="h-4 w-4 text-white" />
-                </div>
+                <img src="/logo.svg" alt="Polaris" className="h-7 w-7" />
                 <span className="font-bold">Polaris</span>
               </div>
               <nav className="flex flex-col gap-1">

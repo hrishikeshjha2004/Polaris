@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { MarketTicker } from "@/components/ui/market-ticker";
 import { MOCK_MARKETS, PROTOCOL_STATS } from "@/lib/mock-data";
 import { formatUsd } from "@stellarpm/shared";
-import { useAnimatedNumber, useRealtimeActivity } from "@/hooks/use-realtime";
+import { useAnimatedNumber } from "@/hooks/use-realtime";
 import { useMarkets } from "@/hooks/use-market";
 import { useProtocolStats } from "@/hooks/use-market";
 import { cn } from "@/lib/utils";
@@ -108,54 +108,6 @@ function FeaturedMarketCard({ market, index }: { market: Market; index: number }
   );
 }
 
-// ─── Live activity feed (real WebSocket trades) ───────────────────────────────
-
-function LiveActivityFeed() {
-  const allTrades = useRealtimeActivity();
-  // Show the 5 most recent trades across all markets.
-  const displayed = allTrades.slice(0, 5);
-
-  if (displayed.length === 0) {
-    // Skeleton rows while no trades have arrived yet.
-    return (
-      <div className="space-y-1.5">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-8 rounded-lg bg-muted/20 animate-pulse" />
-        ))}
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-1.5">
-      {displayed.map((trade, i) => (
-        <motion.div
-          key={trade.id}
-          initial={{ opacity: 0, x: -12 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.35 }}
-          className={cn(
-            "flex items-center gap-2 rounded-lg px-3 py-2 text-xs",
-            i === 0 ? "bg-accent/60 border border-border/50" : "bg-muted/20"
-          )}
-        >
-          <span className={cn(
-            "font-bold shrink-0 px-1.5 py-0.5 rounded text-[10px]",
-            trade.outcome === "yes" ? "bg-yes/15 text-yes" : "bg-no/15 text-no"
-          )}>
-            {trade.side === "sell" ? "SELL " : ""}{trade.outcome.toUpperCase()}
-          </span>
-          <span className="flex-1 truncate text-muted-foreground">
-            {trade.marketTitle.length > 38 ? trade.marketTitle.slice(0, 38) + "…" : trade.marketTitle}
-          </span>
-          <span className="font-semibold shrink-0">${trade.amount.toFixed(0)}</span>
-          <span className="text-muted-foreground/60 shrink-0">{trade.address}</span>
-        </motion.div>
-      ))}
-    </div>
-  );
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function LandingPage() {
@@ -233,17 +185,6 @@ export default function LandingPage() {
             </Button>
           </motion.div>
 
-          {/* Real live activity feed */}
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.5 }}
-            className="max-w-2xl mx-auto">
-            <div className="glass rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="h-1.5 w-1.5 rounded-full bg-yes pulse-dot" />
-                <span className="text-xs text-muted-foreground font-medium">Live Trades</span>
-              </div>
-              <LiveActivityFeed />
-            </div>
-          </motion.div>
         </div>
       </section>
 
