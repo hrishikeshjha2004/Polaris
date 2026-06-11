@@ -1,7 +1,8 @@
 {
-  "name": "stellarpm",
+  "name": "polaris",
   "version": "0.1.0",
   "private": true,
+  "description": "Polaris — Prediction Odds & Liquidity for Asset, Result & Information Settlement. A fully on-chain prediction market protocol on Stellar/Soroban.",
   "workspaces": [
     "apps/*",
     "packages/shared",

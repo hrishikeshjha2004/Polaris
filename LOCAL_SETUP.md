@@ -1,6 +1,6 @@
 # Local Development Setup
 
-Run StellarPM entirely locally with mock data (no contracts needed).
+Run Polaris entirely locally with mock data (no contracts needed).
 
 ## Quick Start
 

@@ -107,7 +107,7 @@ export const useAppStore = create<AppStore>()(
       setWalletModalOpen: (walletModalOpen) =>
         set({ walletModalOpen }, false, "setWalletModalOpen"),
     }),
-    { name: "StellarPM" }
+    { name: "Polaris" }
   )
 );
 

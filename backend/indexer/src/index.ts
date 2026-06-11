@@ -1,5 +1,5 @@
 /**
- * StellarPM Event Indexer
+ * Polaris Event Indexer
  *
  * Polls the Soroban RPC for events from known contracts, persists them to
  * Neon Postgres (via Prisma), and fans them out over a WebSocket with durable
@@ -33,7 +33,7 @@ const POOL_EVENTS: ReadonlySet<EventType> = new Set([
 ]);
 
 async function main() {
-  logger.info("Starting StellarPM Indexer...");
+  logger.info("Starting Polaris Indexer...");
 
   // Fail fast on bad config (validated env).
   const env = requireIndexerEnv();

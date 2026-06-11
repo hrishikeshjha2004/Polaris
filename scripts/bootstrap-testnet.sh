@@ -11,7 +11,7 @@ cd "$ROOT_DIR"
 
 echo ""
 echo "█████████████████████████████████████████████████████"
-echo "         StellarPM — Testnet Bootstrap"
+echo "         Polaris — Testnet Bootstrap"
 echo "█████████████████████████████████████████████████████"
 echo ""
 

@@ -27,7 +27,7 @@ export function Navbar() {
           <div className="rounded-md bg-stellar p-1 group-hover:bg-stellar-dark transition-colors">
             <Zap className="h-4 w-4 text-white" />
           </div>
-          <span>StellarPM</span>
+          <span>Polaris</span>
           <Badge variant="outline" className="ml-1 text-[10px] py-0 px-1.5 border-stellar/30 text-stellar-light hidden sm:inline-flex">
             TESTNET
           </Badge>
@@ -76,7 +76,7 @@ export function Navbar() {
                 <div className="rounded-md bg-stellar p-1">
                   <Zap className="h-4 w-4 text-white" />
                 </div>
-                <span className="font-bold">StellarPM</span>
+                <span className="font-bold">Polaris</span>
               </div>
               <nav className="flex flex-col gap-1">
                 {navLinks.map((link) => {

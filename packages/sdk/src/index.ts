@@ -1,5 +1,5 @@
 /**
- * StellarPM SDK
+ * Polaris SDK
  *
  * Provides typed clients for all on-chain contracts, transaction building,
  * ScVal encoding, and a high-level trading API.
@@ -85,7 +85,7 @@ import { FactoryClient } from "./clients/factory";
 import { TokenClient } from "./clients/token";
 import type { NetworkName, NetworkConfig } from "./config";
 
-export interface StellarPMSdk {
+export interface PolarisSdk {
   config: NetworkConfig;
   /** Get AMM client for a specific AMM contract */
   amm: (contractId: string) => AmmClient;
@@ -97,7 +97,7 @@ export interface StellarPMSdk {
   token: (contractId: string) => TokenClient;
 }
 
-export function createSdk(network?: NetworkName): StellarPMSdk {
+export function createSdk(network?: NetworkName): PolarisSdk {
   const config = getNetworkConfig(network);
 
   return {

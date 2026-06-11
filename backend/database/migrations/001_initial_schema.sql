@@ -1,4 +1,4 @@
--- StellarPM Database Schema
+-- Polaris Database Schema
 -- Migration 001: Initial schema
 
 -- ─── Core Tables ────────────────────────────────────────────────────────────

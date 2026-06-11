@@ -1,4 +1,4 @@
-# StellarPM — System Architecture
+# Polaris — System Architecture
 
 **Version:** 1.0.0
 

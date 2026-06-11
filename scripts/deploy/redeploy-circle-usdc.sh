@@ -1,5 +1,5 @@
 #!/bin/bash
-# Redeploy StellarPM with Circle testnet USDC (CBIELTK6...) as collateral.
+# Redeploy Polaris with Circle testnet USDC (CBIELTK6...) as collateral.
 #
 # Requires: deployer key already registered in stellar-cli keystore.
 # No USDC needed for deployer — creation_fee=0, initial_liquidity=0.
@@ -22,7 +22,7 @@ WASM_DIR="target/wasm32v1-none/release"
 DEPLOYER_ADDR="$(stellar keys address deployer)"
 
 echo "═══════════════════════════════════════════════════════"
-echo "StellarPM Redeploy — Circle USDC"
+echo "Polaris Redeploy — Circle USDC"
 echo "═══════════════════════════════════════════════════════"
 echo "Network:  $NETWORK"
 echo "Deployer: $DEPLOYER_ADDR"
@@ -164,7 +164,7 @@ create_market \
 
 # ─── Write Env Files ──────────────────────────────────────────────────────────
 
-ENV_CONTENT="# StellarPM — Circle USDC deployment — $(date -u +%Y-%m-%dT%H:%M:%SZ)
+ENV_CONTENT="# Polaris — Circle USDC deployment — $(date -u +%Y-%m-%dT%H:%M:%SZ)
 NEXT_PUBLIC_STELLAR_NETWORK=testnet
 NEXT_PUBLIC_SOROBAN_RPC_URL=https://soroban-testnet.stellar.org
 NEXT_PUBLIC_HORIZON_URL=https://horizon-testnet.stellar.org

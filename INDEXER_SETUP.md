@@ -1,6 +1,6 @@
 # Indexer & Realtime Setup (Neon Postgres + Prisma)
 
-The StellarPM indexer polls Soroban RPC for on-chain events, persists them to
+The Polaris indexer polls Soroban RPC for on-chain events, persists them to
 **Neon serverless Postgres** via **Prisma**, and broadcasts live updates to the
 frontend over a WebSocket with durable replay.
 

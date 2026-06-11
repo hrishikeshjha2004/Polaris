@@ -1,5 +1,5 @@
 /**
- * StellarPM REST API
+ * Polaris REST API
  *
  * Serves indexed market data from Neon Postgres (via Prisma) to the frontend.
  * Read-only — all writes go directly on-chain via Soroban.

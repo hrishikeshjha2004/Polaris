@@ -1,6 +1,6 @@
 # Testnet Setup Guide
 
-Deploy StellarPM to Stellar testnet from scratch.
+Deploy Polaris to Stellar testnet from scratch.
 
 ## Prerequisites
 

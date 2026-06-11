@@ -8,12 +8,12 @@ import { Toaster } from "@/components/ui/toaster";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "StellarPM — Decentralized Prediction Markets on Stellar",
+  title: "Polaris — Decentralized Prediction Markets on Stellar",
   description:
-    "Trade YES/NO outcome tokens on crypto price predictions. Fully on-chain, powered by Soroban smart contracts.",
+    "Polaris (Prediction Odds & Liquidity for Asset, Result & Information Settlement) — trade YES/NO outcome tokens on crypto price predictions. Fully on-chain, powered by Soroban smart contracts.",
   keywords: ["prediction market", "stellar", "soroban", "defi", "crypto"],
   openGraph: {
-    title: "StellarPM",
+    title: "Polaris",
     description: "Decentralized prediction markets on Stellar",
     type: "website",
   },

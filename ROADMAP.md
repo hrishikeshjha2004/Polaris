@@ -1,4 +1,4 @@
-# StellarPM — Implementation Roadmap
+# Polaris — Implementation Roadmap
 
 **Version:** 1.0.0
 

@@ -238,7 +238,7 @@ impl MarketFactory {
             &lp_token,
             &factory_addr,
             &amm_address,
-            "StellarPM LP",
+            "Polaris LP",
             "SPMLP",
         );
 

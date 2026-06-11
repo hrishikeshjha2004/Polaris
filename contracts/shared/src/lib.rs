@@ -1,5 +1,5 @@
 #![no_std]
-//! Shared types, errors, and utilities for all StellarPM contracts.
+//! Shared types, errors, and utilities for all Polaris contracts.
 
 use soroban_sdk::{contracterror, contracttype, String};
 

@@ -1,4 +1,4 @@
-// StellarPM database schema — Neon serverless Postgres + Prisma.
+// Polaris database schema — Neon serverless Postgres + Prisma.
 //
 // Connection strategy (Neon):
 //   url       = DATABASE_URL  -> pooled endpoint (-pooler host, PgBouncer).

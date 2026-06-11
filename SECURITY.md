@@ -1,4 +1,4 @@
-# StellarPM — Security Model & Threat Analysis
+# Polaris — Security Model & Threat Analysis
 
 **Version:** 1.0.0  
 **Classification:** Public

@@ -382,7 +382,7 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">
               <div className="rounded-md bg-stellar p-1"><Zap className="h-4 w-4 text-white" /></div>
-              <span className="font-bold text-lg">StellarPM</span>
+              <span className="font-bold text-lg">Polaris</span>
               <Badge variant="secondary" className="ml-2 text-xs">Testnet</Badge>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">

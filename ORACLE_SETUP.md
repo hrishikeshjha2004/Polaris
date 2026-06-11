@@ -1,6 +1,6 @@
 # Oracle Setup Guide
 
-StellarPM uses a multi-signer oracle committee for market resolution.
+Polaris uses a multi-signer oracle committee for market resolution.
 
 ## Architecture
 

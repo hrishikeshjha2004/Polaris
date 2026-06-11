@@ -17,7 +17,7 @@ SETTLEMENT_ID="${SETTLEMENT_CONTRACT_ID:?}"
 TREASURY_ID="${TREASURY_CONTRACT_ID:?}"
 
 echo "═══════════════════════════════════════════════════════"
-echo "StellarPM Deployment Verification — $NETWORK"
+echo "Polaris Deployment Verification — $NETWORK"
 echo "═══════════════════════════════════════════════════════"
 echo ""
 

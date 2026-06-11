@@ -67,7 +67,7 @@ export default function GovernancePage() {
           <Badge variant="outline" className="border-yellow-500/40 text-yellow-400 text-xs">Coming Soon</Badge>
         </div>
         <p className="text-muted-foreground max-w-xl">
-          StellarPM will transition to full community governance via the SPM token. Protocol parameters and treasury decisions will be made by token holders.
+          Polaris will transition to full community governance via the SPM token. Protocol parameters and treasury decisions will be made by token holders.
         </p>
       </motion.div>
 

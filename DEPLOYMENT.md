@@ -1,4 +1,4 @@
-# StellarPM — Deployment Guide
+# Polaris — Deployment Guide
 
 **Version:** 1.0.0
 

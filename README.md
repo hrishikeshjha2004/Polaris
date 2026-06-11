@@ -1,8 +1,10 @@
-# StellarPM — Decentralized Prediction Markets on Stellar
+# Polaris — Decentralized Prediction Markets on Stellar
+
+> **Polaris** — **P**rediction **O**dds & **L**iquidity for **A**sset, **R**esult & **I**nformation **S**ettlement
 
 A fully on-chain prediction market protocol built on Stellar using Soroban smart contracts. Trade YES/NO outcome tokens on crypto price predictions with AMM-powered pricing, multi-signer oracle resolution, and LP incentives.
 
-[![CI](https://github.com/your-org/stellarpm/actions/workflows/ci.yml/badge.svg)](./.github/workflows/ci.yml)
+[![CI](https://github.com/your-org/polaris/actions/workflows/ci.yml/badge.svg)](./.github/workflows/ci.yml)
 
 ---
 
@@ -29,7 +31,7 @@ A fully on-chain prediction market protocol built on Stellar using Soroban smart
 
 ## What Is This?
 
-StellarPM is a Polymarket-style prediction market, but natively built for Stellar:
+Polaris is a Polymarket-style prediction market, but natively built for Stellar:
 
 - **Markets:** "Will BTC exceed $100k by Dec 31, 2026?" → YES/NO tokens
 - **AMM:** Fixed-product (x*y=k) pricing over a USDC-collateralized complete-set model, always-available liquidity

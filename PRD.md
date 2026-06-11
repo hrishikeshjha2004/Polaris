@@ -1,4 +1,4 @@
-# StellarPM — Product Requirements Document
+# Polaris — Product Requirements Document
 
 **Version:** 1.0.0  
 **Date:** 2026-06-03  
@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-StellarPM is a fully on-chain, decentralized prediction market protocol built on the Stellar network using Soroban smart contracts. It enables users to create, trade, and settle prediction markets for real-world crypto asset price events. The protocol is designed to be composable, upgradeable, and governed in a decentralized manner — comparable in ambition to Polymarket on EVM, but natively built for Stellar's low-fee, high-throughput environment.
+Polaris is a fully on-chain, decentralized prediction market protocol built on the Stellar network using Soroban smart contracts. It enables users to create, trade, and settle prediction markets for real-world crypto asset price events. The protocol is designed to be composable, upgradeable, and governed in a decentralized manner — comparable in ambition to Polymarket on EVM, but natively built for Stellar's low-fee, high-throughput environment.
 
 ---
 
@@ -21,7 +21,7 @@ Existing prediction markets suffer from:
 - **Poor composability** — monolithic architectures that cannot be extended
 - **No Stellar-native solution** — the Stellar ecosystem lacks a production-grade prediction market
 
-StellarPM solves all four problems.
+Polaris solves all four problems.
 
 ---
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-# StellarPM Testnet Deployment Script
+# Polaris Testnet Deployment Script
 #
 # Prerequisites:
 #   - stellar-cli installed: brew install stellar-cli  (or cargo install stellar-cli)
@@ -30,7 +30,7 @@ fi
 DEPLOYER_ADDR="$(stellar keys address deployer)"
 
 echo "═══════════════════════════════════════════════════════"
-echo "StellarPM Testnet Deployment"
+echo "Polaris Testnet Deployment"
 echo "═══════════════════════════════════════════════════════"
 echo "Network:  $NETWORK"
 echo "Deployer: $DEPLOYER_ADDR"

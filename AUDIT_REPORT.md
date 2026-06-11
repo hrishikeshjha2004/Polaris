@@ -1,4 +1,4 @@
-# StellarPM — End-to-End Audit & Production Readiness Report
+# Polaris — End-to-End Audit & Production Readiness Report
 
 **Date:** 2026-06-12 · **Network:** Stellar Testnet (Soroban) · **Scope:** contracts, SDK, frontend, backend, CI/CD, deployment, docs
 
@@ -6,7 +6,7 @@
 
 ## 1. Executive Summary
 
-StellarPM is a fully on-chain, Polymarket-style prediction market on Stellar/Soroban. The codebase was already substantially complete (8 contracts, typed SDK, Next.js frontend, event indexer + API + oracle worker, live testnet deployment). This audit closed the remaining production-readiness gaps:
+Polaris is a fully on-chain, Polymarket-style prediction market on Stellar/Soroban. The codebase was already substantially complete (8 contracts, typed SDK, Next.js frontend, event indexer + API + oracle worker, live testnet deployment). This audit closed the remaining production-readiness gaps:
 
 - **Version control established** — the project was not under git; a clean history of **16 meaningful commits** with a logical development progression was created.
 - **Frontend test suite added** — `web` declared `"test": "jest"` with no jest installed and zero tests. Replaced with **Vitest + Testing Library**; **13 passing tests** across utils and UI components.

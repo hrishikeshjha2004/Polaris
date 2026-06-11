@@ -1,4 +1,4 @@
-# StellarPM — Smart Contracts Reference
+# Polaris — Smart Contracts Reference
 
 **Version:** 1.0.0
 
