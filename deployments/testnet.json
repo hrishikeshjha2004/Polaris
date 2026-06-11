@@ -1,0 +1,30 @@
+{
+  "network": "testnet",
+  "version": 2,
+  "deployedAt": "2026-06-03T14:35:00Z",
+  "deployer": "GCKVK36XWVWUPWCBTA3S5L4ISVCV3RIRUNZRDPGO2CM6QL7LUPMNGBMN",
+  "notes": "v2 — USDC on-ramp (buy/sell), Factory initializes child contracts, test USDC token",
+  "contracts": {
+    "factory":    "CDRETEVCFLUP2OHWANPTMJ5UUJ6265RQ7C5RBTC7ANW64MGCA7HU2XCC",
+    "oracle":     "CBOIQXBUAJNQLFSMN5YPTRTNXX6BWEUR4BPQZ3443OOZRVTGQIYRYVTO",
+    "settlement": "CCJ7MARW7U3OE5UGI7VQJHEEP7TF2QK5F4EPWMH24USTKXKBQRYXPAFV",
+    "treasury":   "CCYXEQNE63UN37N3PID2SE7DDBO2U6OPO5WJFR52GBMZRTR6EMTMU3ZX"
+  },
+  "wasmHashes": {
+    "factory":    "de81e3a7285655da79c6feaf05c941d91a6104bd4683469e4e19bbd43142cb4c",
+    "market":     "1a8328f1f763fd3d33b5fb7320e341766c3005ed5c5fbe097726757d66d53c13",
+    "token":      "9ddf72bb753d13ea57f207feeca82b9186355e7e6fb4a241f9d6e0e758714ea3",
+    "amm":        "0e71bc5f097a0eec5c7e8a37fe6fb1aaa720d1012494b22dc77fa370b045bf9f",
+    "oracle":     "b62a53bf1b900262fe3ba5b424fdb54e10eea9664cc9892bf78c6ad709fd854f",
+    "settlement": "c819ead1c53ac80a30bc02f4ae7c9e3a72c94f00a45a167c8e3711b67a4beb84",
+    "treasury":   "32b69ddec9c756fb60ab64a91f1eb5a34ce5f7b1af4942c0de6fcfd3b1a4e8eb"
+  },
+  "tokens": {
+    "usdc": "CCJWR4HYAMZMICEZFX3PUTUFZTR67RIEX54MRWUXTBE3C4X7RUZZWWWZ",
+    "usdcNote": "Test USDC (mintable). Mainnet uses Circle USDC."
+  },
+  "markets": {
+    "btc": "CBFJ3OTHAL3ACKVRHVCBRE3EL46WSTNWLXKGK6YWVGC6EJXLTO2IDXQT",
+    "eth": "CBDD6VQSZFIIQEN6RL7IY2EAJOYPAMKQUCUVTD2OOSFCMXMHIZE5QM6Z"
+  }
+}
