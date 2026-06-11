@@ -19,7 +19,7 @@
 
 ## 1. MarketFactory Contract
 
-**Location:** `contracts/market-factory/src/lib.rs`
+**Location:** `protocol/market-factory/src/lib.rs`
 
 ### Storage Keys
 
@@ -125,7 +125,7 @@ pub enum Error {
 
 ## 2. Market Contract
 
-**Location:** `contracts/market/src/lib.rs`
+**Location:** `protocol/market/src/lib.rs`
 
 ### Market Status Enum
 
@@ -238,7 +238,7 @@ pub struct MarketState {
 
 ## 3. Outcome Token Contract
 
-**Location:** `contracts/token/src/lib.rs`
+**Location:** `protocol/token/src/lib.rs`
 
 Implements Soroban Token Interface (SEP-0041).
 
@@ -265,7 +265,7 @@ Tokens are named using a deterministic scheme:
 
 ## 4. AMM Contract
 
-**Location:** `contracts/amm/src/lib.rs`
+**Location:** `protocol/amm/src/lib.rs`
 
 ### AMM Math Reference
 
@@ -369,7 +369,7 @@ pub struct SwapResult {
 
 ## 5. Oracle Contract
 
-**Location:** `contracts/oracle/src/lib.rs`
+**Location:** `protocol/oracle/src/lib.rs`
 
 ### Storage Layout
 
@@ -457,7 +457,7 @@ pub fn get_signers(env: Env) -> Vec<Address>
 
 ## 6. Settlement Contract
 
-**Location:** `contracts/settlement/src/lib.rs`
+**Location:** `protocol/settlement/src/lib.rs`
 
 ### Public Interface
 
@@ -503,7 +503,7 @@ pub fn payout_rate(env: Env, market_id: BytesN<32>) -> i128
 
 ## 7. Treasury Contract
 
-**Location:** `contracts/treasury/src/lib.rs`
+**Location:** `protocol/treasury/src/lib.rs`
 
 ### Public Interface
 

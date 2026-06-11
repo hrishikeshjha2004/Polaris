@@ -186,7 +186,7 @@ STELLAR_NETWORK=testnet
 "
 
 echo "$ENV_CONTENT" > ".env.deployed"
-echo "$ENV_CONTENT" > "apps/web/.env.local"
+echo "$ENV_CONTENT" > "frontend/.env.local"
 
 echo ""
 echo "═══════════════════════════════════════════════════════"

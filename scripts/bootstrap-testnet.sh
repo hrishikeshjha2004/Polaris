@@ -32,7 +32,7 @@ bash scripts/deploy/deploy-testnet.sh
 
 echo ""
 echo "Step 2/4: Install frontend dependencies..."
-npm install --workspace=apps/web 2>&1 | tail -5
+npm install --workspace=frontend 2>&1 | tail -5
 
 echo ""
 echo "Step 3/4: Create test markets..."
@@ -48,7 +48,7 @@ echo "  ✓ Testnet bootstrap complete!"
 echo "█████████████████████████████████████████████████████"
 echo ""
 echo "Copy env to frontend:"
-echo "  cp .env.deployed apps/web/.env.local"
+echo "  cp .env.deployed frontend/.env.local"
 echo ""
 echo "Start the app:"
 echo "  npm run dev:web"

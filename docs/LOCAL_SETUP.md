@@ -25,7 +25,7 @@ docker run --rm -p 8000:8000 \
   --standalone --enable-soroban-rpc
 
 # 2. Configure for localhost
-cat > apps/web/.env.local <<EOF
+cat > frontend/.env.local <<EOF
 NEXT_PUBLIC_STELLAR_NETWORK=localhost
 NEXT_PUBLIC_SOROBAN_RPC_URL=http://localhost:8000/soroban/rpc
 NEXT_PUBLIC_HORIZON_URL=http://localhost:8000
@@ -49,7 +49,7 @@ npm run dev
 
 ## Mock Data Mode (default)
 
-When `NEXT_PUBLIC_FACTORY_CONTRACT_ID` is not set, the app uses mock data defined in `apps/web/lib/mock-data.ts`.
+When `NEXT_PUBLIC_FACTORY_CONTRACT_ID` is not set, the app uses mock data defined in `frontend/lib/mock-data.ts`.
 
 - All pages render with realistic simulated markets
 - Trades show simulated confirmation with fake tx hash
@@ -93,7 +93,7 @@ Contract change → cargo build → redeploy
 
 TypeScript check:
 ```bash
-cd apps/web && npx tsc --noEmit
+cd frontend && npx tsc --noEmit
 ```
 
 Contract tests:

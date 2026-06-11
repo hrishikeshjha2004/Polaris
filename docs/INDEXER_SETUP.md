@@ -81,7 +81,7 @@ ws.onmessage = (m) => {
 ws.send(JSON.stringify({ type: "subscribe", marketId: "MARKET_ID" }));
 ```
 
-The frontend hook `apps/web/hooks/use-realtime.ts` does this automatically:
+The frontend hook `frontend/hooks/use-realtime.ts` does this automatically:
 auto-reconnect with capped exponential backoff + jitter, resumes from the last
 seq, and invalidates the markets query on each event for instant UI updates.
 

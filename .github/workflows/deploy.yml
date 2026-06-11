@@ -83,7 +83,7 @@ jobs:
         env:
           NEXT_PUBLIC_STELLAR_NETWORK: ${{ inputs.network }}
           NEXT_PUBLIC_FACTORY_CONTRACT_ID: ${{ needs.deploy-contracts.outputs.factory }}
-        run: npm run build --workspace=apps/web
+        run: npm run build --workspace=frontend
 
       - name: Deploy to Vercel
         env:
@@ -93,4 +93,4 @@ jobs:
             echo "VERCEL_TOKEN not set — skipping Vercel deploy."
             exit 0
           fi
-          npx vercel deploy --prod --yes --token "$VERCEL_TOKEN" apps/web
+          npx vercel deploy --prod --yes --token "$VERCEL_TOKEN" frontend

@@ -4,7 +4,7 @@
   "private": true,
   "description": "Polaris — Prediction Odds & Liquidity for Asset, Result & Information Settlement. A fully on-chain prediction market protocol on Stellar/Soroban.",
   "workspaces": [
-    "apps/*",
+    "frontend",
     "packages/shared",
     "packages/sdk",
     "packages/db",
@@ -13,8 +13,8 @@
     "backend/workers/oracle"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev --workspace=apps/web\" \"npm run dev --workspace=backend/indexer\" \"npm run dev --workspace=backend/api\"",
-    "dev:web": "npm run dev --workspace=apps/web",
+    "dev": "concurrently \"npm run dev --workspace=frontend\" \"npm run dev --workspace=backend/indexer\" \"npm run dev --workspace=backend/api\"",
+    "dev:web": "npm run dev --workspace=frontend",
     "dev:indexer": "npm run dev --workspace=backend/indexer",
     "dev:api": "npm run dev --workspace=backend/api",
     "db:generate": "npm run generate --workspace=packages/db",

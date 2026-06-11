@@ -103,7 +103,7 @@ TOTAL: 23 passed; 0 failed
 | Frontend (component + util) | Vitest + Testing Library | 13 | ✅ pass |
 | **Total** | | **36** | **✅ all pass** |
 
-Coverage available via `npm run test:coverage --workspace=apps/web` (v8). Requirement of ≥3 passing tests is exceeded 12×.
+Coverage available via `npm run test:coverage --workspace=frontend` (v8). Requirement of ≥3 passing tests is exceeded 12×.
 
 ---
 
@@ -145,7 +145,7 @@ Verify: `curl https://horizon-testnet.stellar.org/transactions/9a57ccbe6babfc42f
 
 ## 10. Build Outputs
 
-`next build` (apps/web) — succeeds, 9 routes prerendered:
+`next build` (frontend) — succeeds, 9 routes prerendered:
 ```
 Route (app)                     Size      First Load JS
 ○ /                             9.26 kB   391 kB

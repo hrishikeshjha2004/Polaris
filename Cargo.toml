@@ -1,13 +1,13 @@
 [workspace]
 members = [
-    "contracts/market-factory",
-    "contracts/market",
-    "contracts/amm",
-    "contracts/oracle",
-    "contracts/settlement",
-    "contracts/token",
-    "contracts/treasury",
-    "contracts/shared",
+    "protocol/market-factory",
+    "protocol/market",
+    "protocol/amm",
+    "protocol/oracle",
+    "protocol/settlement",
+    "protocol/token",
+    "protocol/treasury",
+    "protocol/shared",
 ]
 resolver = "2"
 

@@ -94,14 +94,14 @@ Oracle ──record_resolution──► Settlement ──pays──► Winners
 - **Settlement:** `payout_per_token = (total_pool − protocol_fee) / winning_supply`
 - **Isolation:** Each market is its own contract — a bug in one cannot drain another's liquidity.
 
-Full design in [ARCHITECTURE.md](./ARCHITECTURE.md); contract reference in [CONTRACTS.md](./CONTRACTS.md).
+Full design in [ARCHITECTURE.md](./docs/ARCHITECTURE.md); contract reference in [CONTRACTS.md](./docs/CONTRACTS.md).
 
 ### Project Structure
 
 ```
-contracts/        Soroban smart contracts (Rust): factory, market, amm,
+protocol/        Soroban smart contracts (Rust): factory, market, amm,
                   oracle, settlement, token, treasury, shared
-apps/web/         Next.js 14 trading frontend (TypeScript)
+frontend/         Next.js 14 trading frontend (TypeScript)
 packages/sdk/     Typed contract SDK (ScVal codecs, tx builders, clients)
 packages/shared/  Shared TypeScript types
 packages/db/      Prisma schema + pooled client (Neon Postgres)
@@ -149,7 +149,7 @@ npm run build:contracts           # = stellar contract build
 npm run test:contracts            # = cargo test
 
 # 5. Run frontend tests
-npm run test --workspace=apps/web # = vitest run
+npm run test --workspace=frontend # = vitest run
 
 # 6. Start the frontend (mock data works with zero backend)
 npm run dev:web                   # http://localhost:3000
@@ -195,7 +195,7 @@ The script auto-funds the deployer via friendbot, uploads all child WASMs, deplo
 bash scripts/verify-deployment.sh # reads live state from every deployed contract
 ```
 
-Detailed guide: [DEPLOYMENT.md](./DEPLOYMENT.md) · [TESTNET_SETUP.md](./TESTNET_SETUP.md).
+Detailed guide: [DEPLOYMENT.md](./docs/DEPLOYMENT.md) · [TESTNET_SETUP.md](./docs/TESTNET_SETUP.md).
 
 ---
 
@@ -206,9 +206,9 @@ Real-time updates flow **chain → indexer → WebSocket → UI** with no pollin
 1. **Contracts emit events** — the AMM emits `buy` / `sell` with `(side, usdc, tokens, fee)`; the Factory emits `market_created`; Settlement emits `market_settled` / `market_resolved`.
 2. **Indexer** (`backend/indexer`) polls Soroban RPC `getEvents` for all watched contract addresses (core + every market's AMM, discovered from the DB at startup and refreshed on `market_created`). Each event is parsed from XDR, written idempotently (`events.eventId`), and **reconciled**: the indexer reads `get_pool_state` from the AMM and updates `yesPrice/noPrice/tvl` plus appends a `price_history` row.
 3. **Broadcaster** persists every payload to `broadcast_events` with a monotonic sequence and pushes it over WebSocket. Payloads are enriched with `marketId`, `ammContract`, `txHash`, and fresh reserves/prices.
-4. **Frontend** (`apps/web/hooks/use-realtime.ts`) subscribes per market, patches the Zustand store instantly, and invalidates the relevant TanStack queries. On reconnect it sends `{type:"replay", since:<seq>}` to backfill missed events.
+4. **Frontend** (`frontend/hooks/use-realtime.ts`) subscribes per market, patches the Zustand store instantly, and invalidates the relevant TanStack queries. On reconnect it sends `{type:"replay", since:<seq>}` to backfill missed events.
 
-**Reconnection & sync:** capped exponential backoff with jitter, a replay cursor for gap-free resync, and a mock-event fallback when no `WS_URL` is configured. See [INDEXER_SETUP.md](./INDEXER_SETUP.md).
+**Reconnection & sync:** capped exponential backoff with jitter, a replay cursor for gap-free resync, and a mock-event fallback when no `WS_URL` is configured. See [INDEXER_SETUP.md](./docs/INDEXER_SETUP.md).
 
 ---
 
@@ -242,7 +242,7 @@ test result: ok. 3 passed   (treasury)
 Total: 23 passed; 0 failed
 ```
 
-### Frontend — `npm run test --workspace=apps/web` (Vitest)
+### Frontend — `npm run test --workspace=frontend` (Vitest)
 
 ```
  ✓ lib/__tests__/utils.test.ts           (5 tests)
@@ -253,7 +253,7 @@ Total: 23 passed; 0 failed
       Tests  13 passed (13)
 ```
 
-Coverage: `npm run test:coverage --workspace=apps/web` (v8 reporter). Lint/format gates: `cargo fmt --all --check`, `cargo clippy --all-targets -- -D warnings`, `npm run lint`.
+Coverage: `npm run test:coverage --workspace=frontend` (v8 reporter). Lint/format gates: `cargo fmt --all --check`, `cargo clippy --all-targets -- -D warnings`, `npm run lint`.
 
 ---
 
@@ -277,7 +277,7 @@ Coverage: `npm run test:coverage --workspace=apps/web` (v8 reporter). Lint/forma
 |--------|---------|-------|
 | Contracts (testnet) | `npm run deploy:testnet` | writes `.env.deployed` + `deployments/testnet.json` |
 | Contracts (CI/CD) | `deploy.yml` → run workflow | secrets from GitHub Environment |
-| Frontend | `npm run build --workspace=apps/web` then Vercel/Node host | inject `NEXT_PUBLIC_*` at build |
+| Frontend | `npm run build --workspace=frontend` then Vercel/Node host | inject `NEXT_PUBLIC_*` at build |
 | Verify | `bash scripts/verify-deployment.sh` | reads live state from all contracts |
 
 **Rollback:** contracts are immutable per deploy — roll back by re-pointing `NEXT_PUBLIC_FACTORY_CONTRACT_ID` (and friends) to the previous known-good addresses in `deployments/` and redeploying the frontend. Each deploy is recorded with its WASM hashes in `deployments/testnet.json` for auditability.
@@ -288,12 +288,12 @@ Coverage: `npm run test:coverage --workspace=apps/web` (v8 reporter). Lint/forma
 
 | Symptom | Cause / Fix |
 |---------|-------------|
-| `next lint` hangs | Ensure `apps/web/.eslintrc.json` exists (non-interactive config). |
+| `next lint` hangs | Ensure `frontend/.eslintrc.json` exists (non-interactive config). |
 | WASM build fails on Rust ≥1.95 | Use `stellar contract build` (handles the `wasm32v1-none` target), not raw `cargo build`. |
 | "Transaction Failed" on buy | Wallet has 0 test USDC — click **Get Test USDC**. `buy`/`sell` are single signed txs (no separate approve). |
-| UI shows no styling | `apps/web/postcss.config.js` must exist so Tailwind compiles. |
+| UI shows no styling | `frontend/postcss.config.js` must exist so Tailwind compiles. |
 | Markets fall back to mock data | Factory address/env not set, or RPC unreachable — check `NEXT_PUBLIC_FACTORY_CONTRACT_ID`. |
-| Realtime not updating | Indexer not running or `NEXT_PUBLIC_WS_URL` unset — see [INDEXER_SETUP.md](./INDEXER_SETUP.md). |
+| Realtime not updating | Indexer not running or `NEXT_PUBLIC_WS_URL` unset — see [INDEXER_SETUP.md](./docs/INDEXER_SETUP.md). |
 | Prisma `migrate` fails | Use `DIRECT_URL` (non-pooled) for migrations; `DATABASE_URL` (pooled) for runtime. |
 
 ---
@@ -326,7 +326,7 @@ Coverage: `npm run test:coverage --workspace=apps/web` (v8 reporter). Lint/forma
 
 ## Security
 
-This protocol has **not** undergone a third-party audit. Do not use with real funds on mainnet until a full audit is completed. See [SECURITY.md](./SECURITY.md) for the threat model and [AUDIT_REPORT.md](./AUDIT_REPORT.md) for the internal review.
+This protocol has **not** undergone a third-party audit. Do not use with real funds on mainnet until a full audit is completed. See [SECURITY.md](./docs/SECURITY.md) for the threat model and [AUDIT_REPORT.md](./docs/AUDIT_REPORT.md) for the internal review.
 
 ## Protocol Decisions
 

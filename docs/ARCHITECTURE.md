@@ -313,7 +313,7 @@ pub fn set_admin(env, current_admin, new_admin: Address)
 ### 3.1 Next.js App Router Structure
 
 ```
-apps/web/
+frontend/
 ├── app/
 │   ├── layout.tsx              # Root layout, wallet provider
 │   ├── page.tsx                # Landing page
@@ -343,7 +343,7 @@ apps/web/
 │   └── useLiquidity.ts
 ├── lib/
 │   ├── stellar/                # Stellar SDK utils
-│   ├── contracts/              # Contract invocation helpers
+│   ├── protocol/              # Contract invocation helpers
 │   └── api/                    # Backend API client
 └── store/
     └── index.ts                # Zustand store

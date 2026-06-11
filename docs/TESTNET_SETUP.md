@@ -48,7 +48,7 @@ This will:
 ## 3. Configure Frontend
 
 ```bash
-cp .env.deployed apps/web/.env.local
+cp .env.deployed frontend/.env.local
 cp .env.deployed backend/indexer/.env
 ```
 
