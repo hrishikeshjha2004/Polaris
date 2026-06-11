@@ -1,0 +1,33 @@
+{
+  "name": "@stellarpm/db",
+  "version": "0.1.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "prisma": {
+    "schema": "prisma/schema.prisma",
+    "seed": "tsx prisma/seed.ts"
+  },
+  "scripts": {
+    "generate": "prisma generate",
+    "migrate": "dotenv -e ../../.env -- prisma migrate dev",
+    "migrate:deploy": "dotenv -e ../../.env -- prisma migrate deploy",
+    "push": "dotenv -e ../../.env -- prisma db push",
+    "seed": "dotenv -e ../../.env -- prisma db seed",
+    "studio": "dotenv -e ../../.env -- prisma studio",
+    "build": "prisma generate && tsc"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "@stellarpm/sdk": "*",
+    "dotenv": "^16.4.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "dotenv-cli": "^7.4.0",
+    "prisma": "^5.22.0",
+    "ts-node": "^10.9.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.0.0"
+  }
+}

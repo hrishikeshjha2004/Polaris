@@ -1,0 +1,282 @@
+// StellarPM database schema — Neon serverless Postgres + Prisma.
+//
+// Connection strategy (Neon):
+//   url       = DATABASE_URL  -> pooled endpoint (-pooler host, PgBouncer).
+//               Used by the running indexer/API at runtime.
+//   directUrl = DIRECT_URL    -> direct endpoint (no -pooler).
+//               Used by `prisma migrate` / `prisma db push` only.
+//
+// Token amounts are stored as BigInt (7-decimal fixed point, matches on-chain).
+// Prices / volume / tvl are Decimal for exact arithmetic.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Markets ──────────────────────────────────────────────────────────────────
+
+enum MarketStatus {
+  open
+  expired
+  resolved
+  closed
+
+  @@map("market_status")
+}
+
+enum Outcome {
+  yes
+  no
+
+  @@map("outcome")
+}
+
+model Market {
+  id                String        @id
+  contractAddress   String        @unique @map("contract_address")
+  ammContract       String?       @map("amm_contract")
+  yesToken          String?       @map("yes_token")
+  noToken           String?       @map("no_token")
+  lpToken           String?       @map("lp_token")
+  title             String
+  description       String?
+  category          String        @default("crypto_price")
+  creator           String
+  expiryTimestamp   DateTime      @map("expiry_timestamp")
+  status            MarketStatus  @default(open)
+  yesPrice          Decimal       @default(50) @map("yes_price") @db.Decimal(6, 2)
+  noPrice           Decimal       @default(50) @map("no_price") @db.Decimal(6, 2)
+  volume            Decimal       @default(0) @db.Decimal(20, 7)
+  tvl               Decimal       @default(0) @db.Decimal(20, 7)
+  oracleSource      String?       @map("oracle_source")
+  thresholdValue    BigInt?       @map("threshold_value")
+  thresholdOperator Int           @default(0) @map("threshold_operator")
+  resolution        Outcome?
+  createdAt         DateTime      @default(now()) @map("created_at")
+
+  trades          Trade[]
+  positions       Position[]
+  lpPositions     LpPosition[]
+  liquidityEvents LiquidityEvent[]
+  priceHistory    PriceHistory[]
+
+  @@index([status])
+  @@index([expiryTimestamp])
+  @@index([creator])
+  @@index([category])
+  @@index([volume(sort: Desc)])
+  @@map("markets")
+}
+
+// ─── Trades / swaps ─────────────────────────────────────────────────────────
+// A "trade" is an on-chain AMM swap fill (buy or sell of an outcome token).
+// This single table covers both the "trades" and "swaps" requirements.
+
+model Trade {
+  id           BigInt   @id @default(autoincrement())
+  marketId     String   @map("market_id")
+  trader       String
+  tokenIn      String   @map("token_in")
+  side         String   @default("buy") // buy | sell
+  amountIn     BigInt   @map("amount_in")
+  amountOut    BigInt   @map("amount_out")
+  fee          BigInt   @default(0)
+  priceImpactBps Int    @default(0) @map("price_impact_bps")
+  txHash       String   @map("tx_hash")
+  timestamp    DateTime
+
+  market Market @relation(fields: [marketId], references: [id])
+
+  @@index([marketId])
+  @@index([trader])
+  @@index([timestamp(sort: Desc)])
+  @@map("trades")
+}
+
+// ─── Liquidity events ─────────────────────────────────────────────────────────
+// Append-only log of every add/remove liquidity action (distinct from the
+// aggregated lp_positions balance table).
+
+model LiquidityEvent {
+  id          BigInt   @id @default(autoincrement())
+  marketId    String   @map("market_id")
+  provider    String
+  kind        String   // add | remove
+  lpShares    BigInt   @map("lp_shares")
+  yesAmount   BigInt   @default(0) @map("yes_amount")
+  noAmount    BigInt   @default(0) @map("no_amount")
+  usdcAmount  BigInt   @default(0) @map("usdc_amount")
+  txHash      String?  @map("tx_hash")
+  timestamp   DateTime
+
+  market Market @relation(fields: [marketId], references: [id])
+
+  @@index([marketId])
+  @@index([provider])
+  @@index([timestamp(sort: Desc)])
+  @@map("liquidity_events")
+}
+
+// ─── Positions ─────────────────────────────────────────────────────────────
+
+model Position {
+  id           BigInt  @id @default(autoincrement())
+  marketId     String  @map("market_id")
+  userAddress  String  @map("user_address")
+  outcome      Outcome
+  tokenBalance BigInt  @default(0) @map("token_balance")
+  avgPrice     Decimal @default(0) @map("avg_price") @db.Decimal(10, 7)
+
+  market Market @relation(fields: [marketId], references: [id])
+
+  @@unique([marketId, userAddress, outcome])
+  @@index([userAddress])
+  @@index([marketId])
+  @@map("positions")
+}
+
+model LpPosition {
+  id             BigInt @id @default(autoincrement())
+  marketId       String @map("market_id")
+  provider       String
+  lpShares       BigInt @default(0) @map("lp_shares")
+  depositedValue BigInt @default(0) @map("deposited_value")
+  feeEarned      BigInt @default(0) @map("fee_earned")
+
+  market Market @relation(fields: [marketId], references: [id])
+
+  @@unique([marketId, provider])
+  @@index([provider])
+  @@map("lp_positions")
+}
+
+// ─── Oracle ──────────────────────────────────────────────────────────────────
+
+model OracleSubmission {
+  id            BigInt   @id @default(autoincrement())
+  marketId      String   @map("market_id")
+  signer        String
+  outcome       Outcome
+  priceAtExpiry BigInt   @map("price_at_expiry")
+  priceSource   String   @map("price_source")
+  submittedAt   DateTime @default(now()) @map("submitted_at")
+  txHash        String?  @map("tx_hash")
+
+  @@unique([marketId, signer])
+  @@map("oracle_submissions")
+}
+
+model OracleResolution {
+  marketId         String   @id @map("market_id")
+  outcome          Outcome
+  finalPrice       BigInt   @map("final_price")
+  resolvedAt       DateTime @map("resolved_at")
+  disputeWindowEnd DateTime @map("dispute_window_end")
+  finalized        Boolean  @default(false)
+  submissionCount  Int      @default(0) @map("submission_count")
+
+  @@map("oracle_resolutions")
+}
+
+model Dispute {
+  id        BigInt   @id @default(autoincrement())
+  marketId  String   @map("market_id")
+  disputer  String
+  reason    String
+  raisedAt  DateTime @default(now()) @map("raised_at")
+
+  @@map("disputes")
+}
+
+// ─── Settlement ────────────────────────────────────────────────────────────
+
+model Settlement {
+  marketId       String   @id @map("market_id")
+  winningOutcome Outcome  @map("winning_outcome")
+  totalPool      BigInt   @default(0) @map("total_pool")
+  protocolFee    BigInt   @default(0) @map("protocol_fee")
+  payoutPool     BigInt   @default(0) @map("payout_pool")
+  payoutRate     BigInt   @default(0) @map("payout_rate")
+  winningSupply  BigInt   @default(0) @map("winning_supply")
+  settledAt      DateTime @default(now()) @map("settled_at")
+
+  @@map("settlements")
+}
+
+model Claim {
+  id           BigInt   @id @default(autoincrement())
+  marketId     String   @map("market_id")
+  claimant     String
+  tokensBurned BigInt   @map("tokens_burned")
+  usdcReceived BigInt   @map("usdc_received")
+  claimedAt    DateTime @default(now()) @map("claimed_at")
+
+  @@unique([marketId, claimant])
+  @@map("claims")
+}
+
+// ─── Raw event log + indexer state ───────────────────────────────────────────
+
+model Event {
+  eventId    String   @id @map("event_id")
+  eventType  String   @map("event_type")
+  contractId String   @map("contract_id")
+  ledger     BigInt
+  timestamp  DateTime
+  txHash     String   @map("tx_hash")
+  data       Json     @default("{}")
+
+  @@index([contractId])
+  @@index([eventType])
+  @@index([timestamp(sort: Desc)])
+  @@map("events")
+}
+
+model IndexerState {
+  key   String @id
+  value String
+
+  @@map("indexer_state")
+}
+
+// ─── Price history (for charts / 24h change) ──────────────────────────────────
+
+model PriceHistory {
+  id         BigInt   @id @default(autoincrement())
+  marketId   String   @map("market_id")
+  yesPrice   Decimal  @map("yes_price") @db.Decimal(6, 2)
+  noPrice    Decimal  @map("no_price") @db.Decimal(6, 2)
+  yesReserve BigInt   @default(0) @map("yes_reserve")
+  noReserve  BigInt   @default(0) @map("no_reserve")
+  volume     BigInt   @default(0)
+  timestamp  DateTime @default(now())
+
+  market Market @relation(fields: [marketId], references: [id])
+
+  @@index([marketId, timestamp(sort: Desc)])
+  @@map("price_history")
+}
+
+// ─── WebSocket event persistence ──────────────────────────────────────────────
+// Every realtime message broadcast to clients is also persisted here with a
+// monotonic id. Clients reconnecting send their last-seen cursor and the server
+// replays everything newer, so no realtime update is ever missed across drops.
+
+model BroadcastEvent {
+  seq       BigInt   @id @default(autoincrement())
+  channel   String   // event type, e.g. "swap", "market_settled"
+  marketId  String?  @map("market_id")
+  payload   Json
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([seq])
+  @@index([channel])
+  @@index([marketId])
+  @@map("broadcast_events")
+}
