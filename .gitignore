@@ -19,3 +19,4 @@ packages/db/prisma/*.db
 # Logs / OS
 *.log
 .DS_Store
+.vercel
