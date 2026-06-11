@@ -86,5 +86,11 @@ jobs:
         run: npm run build --workspace=apps/web
 
       - name: Deploy to Vercel
-        if: ${{ secrets.VERCEL_TOKEN != '' }}
-        run: npx vercel deploy --prod --yes --token "${{ secrets.VERCEL_TOKEN }}" apps/web
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "VERCEL_TOKEN not set — skipping Vercel deploy."
+            exit 0
+          fi
+          npx vercel deploy --prod --yes --token "$VERCEL_TOKEN" apps/web
