@@ -259,15 +259,31 @@ Coverage: `npm run test:coverage --workspace=frontend` (v8 reporter). Lint/forma
 
 ## CI/CD Pipeline
 
-`.github/workflows/ci.yml` runs on every push and PR to `main`/`develop`:
+`.github/workflows/ci.yml` is a staged pipeline that runs on every push and PR to `main`/`develop`. Jobs are wired with `needs:` so GitHub renders the dependency graph as a flow of stages:
 
-| Job | Steps |
-|-----|-------|
-| **Smart Contract Tests** | `cargo fmt --check` → `clippy -D warnings` → `cargo test --all` → build WASMs → upload `contract-wasms` artifact |
-| **Frontend Test & Build** | `npm ci` → type-check → lint → **Vitest** → `next build` → upload `web-build` artifact |
-| **Security Audit** | `cargo audit` + `npm audit` (advisory, `continue-on-error`) |
+```mermaid
+graph LR
+  A([🔍 Lint + Format]) --> B([🦀 Contract Tests])
+  A --> C([⚛️ Frontend Tests])
+  A --> S([🛡️ Security Audit])
+  B --> D([📦 Build + Artifacts])
+  C --> D
+  D --> E([🚀 Deploy · Vercel])
+  E --> F([✅ Pipeline Summary])
+  S --> F
+```
 
-`.github/workflows/deploy.yml` is a manually-dispatched, environment-gated pipeline that builds WASMs, deploys contracts with secrets from a GitHub Environment, uploads the deployment manifest, then builds and deploys the frontend with the freshly deployed addresses injected. The pipeline **fails the build** if any gate (fmt, clippy, types, lint, tests, build) fails.
+| Stage | What it does |
+|-------|--------------|
+| 🔍 **Lint & Format** | `cargo fmt --check` · `clippy -D warnings` · `tsc` type-check · `eslint` |
+| 🦀 **Contract Tests** | `cargo test --all` (23 tests) |
+| ⚛️ **Frontend Tests** | `vitest run` (13 tests) |
+| 🛡️ **Security Audit** | `cargo audit` + `npm audit` (advisory, `continue-on-error`) |
+| 📦 **Build & Artifacts** | release WASMs + `next build`, uploaded as workflow artifacts |
+| 🚀 **Deploy (Vercel)** | production deploy on push to `main` (also via Vercel Git integration) |
+| ✅ **Pipeline Summary** | renders the diagram + per-stage results into the run summary and **gates** the run |
+
+The Summary stage fails the run if any required stage (lint, tests, build, deploy) fails. `.github/workflows/deploy.yml` is a separate manually-dispatched, environment-gated workflow for deploying the Soroban contracts with secrets from a GitHub Environment.
 
 ---
 
