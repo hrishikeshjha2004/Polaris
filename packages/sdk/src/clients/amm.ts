@@ -6,7 +6,7 @@
  * state-mutating operations return unsigned transaction XDR.
  */
 
-import { SorobanRpc, xdr } from "@stellar/stellar-sdk";
+import { rpc, xdr } from "@stellar/stellar-sdk";
 import { buildAndSimulate, getServer, simulateReadCall } from "../tx";
 import {
   addressToScVal,
@@ -69,7 +69,7 @@ export interface RemoveLiquidityTxParams {
 // ─── Client ───────────────────────────────────────────────────────────────────
 
 export class AmmClient {
-  private server: SorobanRpc.Server;
+  private server: rpc.Server;
 
   constructor(
     private config: NetworkConfig,

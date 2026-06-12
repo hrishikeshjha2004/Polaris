@@ -5,7 +5,7 @@
  * all per-market calls: state reads, expiry, resolution recording, volume.
  */
 
-import { SorobanRpc, xdr, Address } from "@stellar/stellar-sdk";
+import { rpc, xdr, Address } from "@stellar/stellar-sdk";
 import { buildAndSimulate, getServer, simulateReadCall } from "../tx";
 import {
   addressToScVal,
@@ -44,7 +44,7 @@ export interface OnChainMarketState {
 // ─── Client ───────────────────────────────────────────────────────────────────
 
 export class MarketClient {
-  private server: SorobanRpc.Server;
+  private server: rpc.Server;
 
   constructor(
     private config: NetworkConfig,

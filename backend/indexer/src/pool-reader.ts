@@ -15,7 +15,7 @@ import {
   Account,
   Contract,
   Networks,
-  SorobanRpc,
+  rpc,
   TransactionBuilder,
   BASE_FEE,
   scValToNative,
@@ -51,7 +51,7 @@ export class PoolReader {
   private passphrase: string;
 
   constructor(
-    private server: SorobanRpc.Server,
+    private server: rpc.Server,
     private logger: Logger,
     passphrase?: string
   ) {
@@ -79,11 +79,11 @@ export class PoolReader {
         .build();
 
       const sim = await this.server.simulateTransaction(tx);
-      if (SorobanRpc.Api.isSimulationError(sim)) {
+      if (rpc.Api.isSimulationError(sim)) {
         this.logger.warn({ ammContract, err: sim.error }, "Pool sim error");
         return null;
       }
-      const ok = sim as SorobanRpc.Api.SimulateTransactionSuccessResponse;
+      const ok = sim as rpc.Api.SimulateTransactionSuccessResponse;
       const retval = ok.result?.retval;
       if (!retval) return null;
 

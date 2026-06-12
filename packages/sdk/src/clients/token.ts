@@ -3,7 +3,7 @@
  * our custom OutcomeToken (YES/NO/LP) which extends the SEP-41 interface.
  */
 
-import { SorobanRpc, xdr } from "@stellar/stellar-sdk";
+import { rpc, xdr } from "@stellar/stellar-sdk";
 import { simulateReadCall } from "../tx";
 import {
   addressToScVal,
@@ -15,7 +15,7 @@ import type { NetworkConfig } from "../config";
 import { getServer } from "../tx";
 
 export class TokenClient {
-  private server: SorobanRpc.Server;
+  private server: rpc.Server;
 
   constructor(
     private config: NetworkConfig,
