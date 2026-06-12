@@ -223,6 +223,10 @@ Real-time updates flow **chain → indexer → WebSocket → UI** with no pollin
 
 ---
 
+## Mobile responsive UI
+
+<img width="343" height="595" alt="Screenshot 2026-06-12 at 2 44 18 AM" src="https://github.com/user-attachments/assets/ef85536d-e19d-425f-ba2d-b4229b16bd5c" />
+
 ## Testing
 
 Two independent suites, both wired into CI.
@@ -241,6 +245,9 @@ test result: ok. 3 passed   (treasury)
 ──────────────────────────────────────
 Total: 23 passed; 0 failed
 ```
+## CI/CD Pipelines
+
+<img width="1459" height="834" alt="Screenshot 2026-06-12 at 11 12 16 AM" src="https://github.com/user-attachments/assets/d1168747-d2f7-429e-ac46-045590e37b82" />
 
 ### Frontend — `npm run test --workspace=frontend` (Vitest)
 
