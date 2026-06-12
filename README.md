@@ -1,10 +1,8 @@
 # Polaris — Decentralized Prediction Markets on Stellar
 
-> **Polaris** — **P**rediction **O**dds & **L**iquidity for **A**sset, **R**esult & **I**nformation **S**ettlement
+**Polaris** — **P**rediction **O**dds & **L**iquidity for **A**sset, **R**esult & **I**nformation **S**ettlement
 
 A fully on-chain prediction market protocol built on Stellar using Soroban smart contracts. Trade YES/NO outcome tokens on crypto price predictions with AMM-powered pricing, multi-signer oracle resolution, and LP incentives.
-
-[![CI](https://github.com/your-org/polaris/actions/workflows/ci.yml/badge.svg)](./.github/workflows/ci.yml)
 
 ---
 
