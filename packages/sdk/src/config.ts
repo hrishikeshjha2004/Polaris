@@ -22,34 +22,48 @@ export interface NetworkConfig {
 // ─── Contract Address Registry ────────────────────────────────────────────────
 // Updated after each deployment by running scripts/deploy/deploy-testnet.sh
 
+// Canonical live testnet (v3 "Circle USDC") deployment. These are PUBLIC
+// contract addresses, baked in as fallbacks so a hosted build (e.g. Vercel,
+// where .env.local is gitignored and never shipped) is fully functional even
+// when no NEXT_PUBLIC_* env vars are configured. Without these fallbacks the
+// addresses resolve to "" → isContractsDeployed() returns false → the frontend
+// silently runs in mock mode: fake trades (random TX_ hashes, nothing on-chain),
+// disabled balance queries (USDC shows 0). Env vars still take precedence, so a
+// fresh deploy only needs to set NEXT_PUBLIC_*_CONTRACT_ID to point elsewhere.
+// Verified on-chain 2026-06-12: factory.list_markets → 3 markets; the BTC AMM's
+// usdc_reserves match its balance on CBIELTK6 exactly → Circle USDC is the real
+// collateral, NOT the deprecated mintable CCJWR4HY token.
+const TESTNET_FACTORY = "CDE3CXXJCHNLRIQCAQJ6R6FPC5YA5VDOMO2PDYMK66F6XTTJROX76UNI";
+const TESTNET_ORACLE = "CAFP5Y2E75IEQSZ5DOKPJCKLQCUZXXAGY2DV3Q4PUXNTVNFPQ3HNDG2F";
+const TESTNET_SETTLEMENT = "CBVJYJ3U7VFS5UMMCSHRLQZ3WUOOHDEMAIIBXOQD4YM3FSML4EGFEOK5";
+const TESTNET_TREASURY = "CCATFS3BGLECQKZ7JGIFLKDIMVZW27ZSLLNO3DRT5GB2M4BXR7AVKMPA";
+const TESTNET_USDC = "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA";
+
 const TESTNET_CONTRACTS: ContractAddresses = {
   factory:
     (process.env.NEXT_PUBLIC_FACTORY_CONTRACT_ID as string) ||
     (process.env.FACTORY_CONTRACT_ID as string) ||
-    "",
+    TESTNET_FACTORY,
   oracle:
     (process.env.NEXT_PUBLIC_ORACLE_CONTRACT_ID as string) ||
     (process.env.ORACLE_CONTRACT_ID as string) ||
-    "",
+    TESTNET_ORACLE,
   settlement:
     (process.env.NEXT_PUBLIC_SETTLEMENT_CONTRACT_ID as string) ||
     (process.env.SETTLEMENT_CONTRACT_ID as string) ||
-    "",
+    TESTNET_SETTLEMENT,
   treasury:
     (process.env.NEXT_PUBLIC_TREASURY_CONTRACT_ID as string) ||
     (process.env.TREASURY_CONTRACT_ID as string) ||
-    "",
+    TESTNET_TREASURY,
   // USDC the deployed markets/AMMs were initialized with. This MUST match the
-  // collateral token every live AMM expects, otherwise approve/balance/trade
-  // all operate on the wrong asset and every trade fails at the approve step.
-  // Resolved from env (set by deploy-testnet.sh), falling back to the deployed
-  // mintable testnet USDC so the live v2 deployment is usable out of the box.
-  // To run against Circle's faucet USDC instead, deploy fresh markets with that
-  // token and set NEXT_PUBLIC_USDC_CONTRACT_ID accordingly.
+  // collateral token every live AMM expects, otherwise balance/trade operate on
+  // the wrong asset (balance reads 0, buys trap at transfer). Verified to be
+  // Circle's testnet USDC (CBIELTK6) for the live v3 markets.
   usdc:
     (process.env.NEXT_PUBLIC_USDC_CONTRACT_ID as string) ||
     (process.env.USDC_CONTRACT_ID as string) ||
-    "CCJWR4HYAMZMICEZFX3PUTUFZTR67RIEX54MRWUXTBE3C4X7RUZZWWWZ",
+    TESTNET_USDC,
 };
 
 /** Circle testnet USDC — canonical, used by deploy + seed scripts. */
