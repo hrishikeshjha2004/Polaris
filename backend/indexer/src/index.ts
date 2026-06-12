@@ -92,17 +92,23 @@ async function main() {
   // Fresh start (or a cursor older than RPC retention): begin from the current
   // ledger so we index new events going forward. Existing market state is
   // already loaded by the seed, so we don't need to backfill ancient history.
-  if (lastLedger === 0) {
-    try {
-      const latest = await server.getLatestLedger();
-      lastLedger = latest.sequence;
+  // Testnet RPC only retains a sliding window (~120k ledgers); resuming from a
+  // cursor below that floor makes getEvents reject every poll with
+  // "startLedger must be within the ledger range". So if the stored cursor is
+  // 0 OR has fallen too far behind the latest ledger, jump to the current one.
+  const STALE_LEDGER_GAP = 100_000;
+  try {
+    const latest = (await server.getLatestLedger()).sequence;
+    if (lastLedger === 0 || latest - lastLedger > STALE_LEDGER_GAP) {
+      const reason = lastLedger === 0 ? "Fresh start" : `Stored cursor ${lastLedger} is stale`;
+      lastLedger = latest;
       await setLastIndexedLedger(lastLedger);
-      logger.info(`Fresh start — beginning from current ledger ${lastLedger}`);
-    } catch (err) {
-      logger.warn({ err }, "Could not fetch latest ledger at startup");
+      logger.info(`${reason} — beginning from current ledger ${lastLedger}`);
+    } else {
+      logger.info(`Resuming from ledger ${lastLedger}`);
     }
-  } else {
-    logger.info(`Resuming from ledger ${lastLedger}`);
+  } catch (err) {
+    logger.warn({ err }, "Could not fetch latest ledger at startup");
   }
 
   let consecutiveErrors = 0;
