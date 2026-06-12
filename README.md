@@ -6,24 +6,8 @@ A fully on-chain prediction market protocol built on Stellar using Soroban smart
 
 ---
 
-## Table of Contents
-
-- [Overview](#what-is-this)
-- [Features](#features)
-- [Live Testnet Deployment](#live-testnet-deployment)
-- [Architecture](#architecture)
-- [Tech Stack](#tech-stack)
-- [Installation](#installation)
-- [Environment Variables](#environment-variables)
-- [Smart Contract Deployment](#smart-contract-deployment)
-- [Event Streaming Architecture](#event-streaming-architecture)
-- [Frontend Architecture](#frontend-architecture)
-- [Testing](#testing)
-- [CI/CD Pipeline](#cicd-pipeline)
-- [Deployment Guide](#deployment-guide)
-- [Troubleshooting](#troubleshooting)
-- [Demo Walkthrough](#demo-walkthrough)
-- [Screenshots](#screenshots)
+**Demo Video :** https://youtu.be/S6CzRxhlE1s?si=c6L7nMtUnAqa4d-5
+**Live Link :** polaris-stellar.vercel.app
 
 ---
 
