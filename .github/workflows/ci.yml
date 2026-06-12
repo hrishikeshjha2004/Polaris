@@ -168,11 +168,17 @@ jobs:
     environment:
       name: production
       url: https://polaris-eight-omega.vercel.app
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
       - name: Deploy frontend to Vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
             echo "ℹ️  No VERCEL_TOKEN secret set — production CD is handled by the"
@@ -180,10 +186,16 @@ jobs:
             echo "    Live: https://polaris-eight-omega.vercel.app"
             exit 0
           fi
-          npm i -g vercel
+          npm i -g vercel@latest
+          echo "→ Pulling project settings & production env"
           vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
+          echo "→ Building (prebuilt) with production env"
           vercel build --prod --token "$VERCEL_TOKEN"
-          vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN"
+          echo "→ Deploying prebuilt output to production"
+          url=$(vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN")
+          echo "Deployed: $url"
+          echo "### 🚀 Deployed to production" >> "$GITHUB_STEP_SUMMARY"
+          echo "$url" >> "$GITHUB_STEP_SUMMARY"
 
   # ─── Stage 5 · Pipeline summary (always) ─────────────────────────────────────
   summary:
