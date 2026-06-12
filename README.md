@@ -8,7 +8,7 @@ A fully on-chain prediction market protocol built on Stellar using Soroban smart
 
 **Demo Video :** https://youtu.be/S6CzRxhlE1s?si=c6L7nMtUnAqa4d-5
 
-**Live Link :** polaris-stellar.vercel.app
+**Live Link :** https://polaris-stellar.vercel.app
 
 ---
 
