@@ -13,7 +13,7 @@ import * as dotenv from "dotenv";
 import { Pool } from "pg";
 import {
   Keypair,
-  SorobanRpc,
+  rpc,
   TransactionBuilder,
   Networks,
   Contract,
@@ -44,7 +44,7 @@ async function main() {
 
   const db = new Pool({ connectionString: process.env.DATABASE_URL });
   const signer = Keypair.fromSecret(SIGNER_SECRET);
-  const server = new SorobanRpc.Server(SOROBAN_RPC_URL, { allowHttp: false });
+  const server = new rpc.Server(SOROBAN_RPC_URL, { allowHttp: false });
   const priceFeeds = new PriceFeedAggregator(logger);
 
   logger.info(`Oracle signer: ${signer.publicKey()}`);
@@ -70,7 +70,7 @@ async function main() {
 // ─── Process Expired Markets ─────────────────────────────────────────────────
 
 async function processExpiredMarkets(
-  server: SorobanRpc.Server,
+  server: rpc.Server,
   signer: Keypair,
   priceFeeds: PriceFeedAggregator,
   db: Pool
@@ -105,7 +105,7 @@ async function processExpiredMarkets(
 }
 
 async function submitResolution(
-  server: SorobanRpc.Server,
+  server: rpc.Server,
   signer: Keypair,
   priceFeeds: PriceFeedAggregator,
   db: Pool,
@@ -159,13 +159,13 @@ async function submitResolution(
     .build();
 
   const simResult = await server.simulateTransaction(tx);
-  if (SorobanRpc.Api.isSimulationError(simResult)) {
+  if (rpc.Api.isSimulationError(simResult)) {
     throw new Error(`Simulation failed: ${simResult.error}`);
   }
 
-  const assembled = SorobanRpc.assembleTransaction(
+  const assembled = rpc.assembleTransaction(
     tx,
-    simResult as SorobanRpc.Api.SimulateTransactionSuccessResponse
+    simResult as rpc.Api.SimulateTransactionSuccessResponse
   ).build();
   assembled.sign(signer);
 
@@ -192,7 +192,7 @@ async function submitResolution(
 // ─── Finalize Resolutions ─────────────────────────────────────────────────────
 
 async function finalizeReadyResolutions(
-  server: SorobanRpc.Server,
+  server: rpc.Server,
   signer: Keypair,
   db: Pool
 ) {
@@ -220,7 +220,7 @@ async function finalizeReadyResolutions(
 }
 
 async function callFinalizeResolution(
-  server: SorobanRpc.Server,
+  server: rpc.Server,
   signer: Keypair,
   marketId: string
 ) {
@@ -240,13 +240,13 @@ async function callFinalizeResolution(
     .build();
 
   const simResult = await server.simulateTransaction(tx);
-  if (SorobanRpc.Api.isSimulationError(simResult)) {
+  if (rpc.Api.isSimulationError(simResult)) {
     throw new Error(`Finalization simulation failed: ${simResult.error}`);
   }
 
-  const assembled = SorobanRpc.assembleTransaction(
+  const assembled = rpc.assembleTransaction(
     tx,
-    simResult as SorobanRpc.Api.SimulateTransactionSuccessResponse
+    simResult as rpc.Api.SimulateTransactionSuccessResponse
   ).build();
   assembled.sign(signer);
   await server.sendTransaction(assembled);

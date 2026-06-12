@@ -6,7 +6,7 @@
  */
 
 import {
-  SorobanRpc,
+  rpc,
   Transaction,
   TransactionBuilder,
   xdr,
@@ -42,13 +42,13 @@ export interface BuildTxOptions {
 
 // ─── RPC Server ───────────────────────────────────────────────────────────────
 
-const servers = new Map<string, SorobanRpc.Server>();
+const servers = new Map<string, rpc.Server>();
 
-export function getServer(config: NetworkConfig): SorobanRpc.Server {
+export function getServer(config: NetworkConfig): rpc.Server {
   if (!servers.has(config.rpcUrl)) {
     servers.set(
       config.rpcUrl,
-      new SorobanRpc.Server(config.rpcUrl, {
+      new rpc.Server(config.rpcUrl, {
         allowHttp: config.rpcUrl.startsWith("http://"),
       })
     );
@@ -59,14 +59,14 @@ export function getServer(config: NetworkConfig): SorobanRpc.Server {
 // ─── Build + Simulate ────────────────────────────────────────────────────────
 
 export async function buildAndSimulate(
-  server: SorobanRpc.Server,
+  server: rpc.Server,
   sourceAddress: string,
   networkPassphrase: string,
   contractId: string,
   method: string,
   args: xdr.ScVal[],
   options: BuildTxOptions = {}
-): Promise<{ tx: Transaction; simResult: SorobanRpc.Api.SimulateTransactionSuccessResponse }> {
+): Promise<{ tx: Transaction; simResult: rpc.Api.SimulateTransactionSuccessResponse }> {
   const sourceAccount = await server.getAccount(sourceAddress);
   const contract = new Contract(contractId);
 
@@ -80,22 +80,22 @@ export async function buildAndSimulate(
 
   const simResult = await server.simulateTransaction(tx);
 
-  if (SorobanRpc.Api.isSimulationError(simResult)) {
+  if (rpc.Api.isSimulationError(simResult)) {
     throw new Error(`Simulation failed: ${simResult.error}`);
   }
-  if (SorobanRpc.Api.isSimulationRestore(simResult)) {
+  if (rpc.Api.isSimulationRestore(simResult)) {
     throw new Error("Transaction needs footprint restore — run stellar-cli contract restore");
   }
 
-  const successSim = simResult as SorobanRpc.Api.SimulateTransactionSuccessResponse;
-  const preparedTx = SorobanRpc.assembleTransaction(tx, successSim).build();
+  const successSim = simResult as rpc.Api.SimulateTransactionSuccessResponse;
+  const preparedTx = rpc.assembleTransaction(tx, successSim).build();
 
   return { tx: preparedTx, simResult: successSim };
 }
 
 /** Simulate-only (read call): no signing needed */
 export async function simulateReadCall(
-  server: SorobanRpc.Server,
+  server: rpc.Server,
   networkPassphrase: string,
   contractId: string,
   method: string,
@@ -123,11 +123,11 @@ export async function simulateReadCall(
 
     const simResult = await server.simulateTransaction(tx);
 
-    if (SorobanRpc.Api.isSimulationError(simResult)) {
+    if (rpc.Api.isSimulationError(simResult)) {
       return { success: false, error: simResult.error };
     }
 
-    const success = simResult as SorobanRpc.Api.SimulateTransactionSuccessResponse;
+    const success = simResult as rpc.Api.SimulateTransactionSuccessResponse;
     return {
       success: true,
       returnValue: success.result?.retval,
@@ -144,7 +144,7 @@ const POLL_INTERVAL_MS = 1_000;
 const MAX_POLLS = 30;
 
 export async function submitAndConfirm(
-  server: SorobanRpc.Server,
+  server: rpc.Server,
   signedXdr: string,
   networkPassphrase: string
 ): Promise<SubmitResult> {
@@ -185,8 +185,8 @@ export async function submitAndConfirm(
       throw err;
     }
 
-    if (result.status === SorobanRpc.Api.GetTransactionStatus.SUCCESS) {
-      const success = result as SorobanRpc.Api.GetSuccessfulTransactionResponse;
+    if (result.status === rpc.Api.GetTransactionStatus.SUCCESS) {
+      const success = result as rpc.Api.GetSuccessfulTransactionResponse;
       return {
         hash,
         status: "success",
@@ -194,7 +194,7 @@ export async function submitAndConfirm(
       };
     }
 
-    if (result.status === SorobanRpc.Api.GetTransactionStatus.FAILED) {
+    if (result.status === rpc.Api.GetTransactionStatus.FAILED) {
       return { hash, status: "failed", errorMessage: "Transaction failed on-chain" };
     }
   }

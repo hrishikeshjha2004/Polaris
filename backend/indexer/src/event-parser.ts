@@ -1,5 +1,5 @@
 import { xdr, scValToNative, Address } from "@stellar/stellar-sdk";
-import type { SorobanRpc } from "@stellar/stellar-sdk";
+import type { rpc } from "@stellar/stellar-sdk";
 import type { Logger } from "pino";
 
 export type EventType =
@@ -48,7 +48,7 @@ const EVENT_MAP: Record<string, EventType> = {
 export class EventParser {
   constructor(private logger: Logger) {}
 
-  parseEvent(event: SorobanRpc.Api.EventResponse): ParsedEvent | null {
+  parseEvent(event: rpc.Api.EventResponse): ParsedEvent | null {
     try {
       // event.topic is an array of XDR base64 strings
       const rawTopics: string[] = event.topic as unknown as string[];

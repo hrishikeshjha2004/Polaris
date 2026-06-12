@@ -6,7 +6,7 @@
  * replay. Resilient to RPC hiccups and DB disconnects via bounded retries.
  */
 
-import { SorobanRpc } from "@stellar/stellar-sdk";
+import { rpc } from "@stellar/stellar-sdk";
 import { WebSocketServer } from "ws";
 import {
   prisma,
@@ -82,7 +82,7 @@ async function main() {
   logger.info(`WebSocket server listening on port ${env.WS_PORT}`);
 
   // ─── Soroban RPC Client ───────────────────────────────────────────────────
-  const server = new SorobanRpc.Server(env.SOROBAN_RPC_URL, {
+  const server = new rpc.Server(env.SOROBAN_RPC_URL, {
     allowHttp: env.SOROBAN_RPC_URL.startsWith("http://"),
   });
   const parser = new EventParser(logger);

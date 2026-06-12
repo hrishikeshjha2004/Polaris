@@ -5,7 +5,7 @@
  * All other contracts are deployed by the factory per market.
  */
 
-import { SorobanRpc, xdr, Address } from "@stellar/stellar-sdk";
+import { rpc, xdr, Address } from "@stellar/stellar-sdk";
 import { buildAndSimulate, getServer, simulateReadCall } from "../tx";
 import {
   addressToScVal,
@@ -37,7 +37,7 @@ export interface CreateMarketParams {
 // ─── Client ───────────────────────────────────────────────────────────────────
 
 export class FactoryClient {
-  private server: SorobanRpc.Server;
+  private server: rpc.Server;
 
   constructor(
     private config: NetworkConfig,
