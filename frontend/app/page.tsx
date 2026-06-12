@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MarketTicker } from "@/components/ui/market-ticker";
+import { HeroBackground } from "@/components/ui/hero-background";
 import { MOCK_MARKETS, PROTOCOL_STATS } from "@/lib/mock-data";
 import { formatUsd } from "@stellarpm/shared";
 import { useAnimatedNumber } from "@/hooks/use-realtime";
@@ -131,37 +132,20 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col overflow-hidden">
-      {/* Live Ticker — real market prices */}
-      <MarketTicker markets={tickerMarkets} />
-
       {/* Hero */}
       <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-4 py-20 overflow-hidden">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] rounded-full opacity-[0.07]"
-            style={{ background: "radial-gradient(circle, hsl(263 70% 63%) 0%, transparent 70%)" }} />
-          <div className="absolute bottom-0 left-1/4 w-[600px] h-[400px] rounded-full opacity-[0.05]"
-            style={{ background: "radial-gradient(circle, hsl(142 71% 45%) 0%, transparent 70%)" }} />
-        </div>
-        <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-          {["top-1/4 left-1/6 bg-stellar/40", "top-1/3 right-1/5 bg-yes/50", "bottom-1/3 left-1/3 bg-no/40"].map((cls, i) => (
-            <motion.div key={i}
-              animate={{ y: [0, -16 + i * 4, 0], x: [0, 8 - i * 3, 0] }}
-              transition={{ duration: 7 + i, repeat: Infinity, ease: "easeInOut", delay: i }}
-              className={`absolute ${cls} w-2 h-2 rounded-full blur-sm`}
-            />
-          ))}
-        </div>
+        <HeroBackground />
 
         <div className="container mx-auto text-center max-w-5xl">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <div className="inline-flex items-center gap-2 rounded-full border border-stellar/30 bg-stellar/10 px-4 py-1.5 text-sm text-stellar-light mb-8">
+            <div className="inline-flex items-center gap-2 rounded-full border border-stellar/30 bg-stellar/10 px-4 py-1.5 text-sm text-stellar-light mb-8 backdrop-blur-sm shadow-[0_0_24px_-6px_rgba(124,58,237,0.5)]">
               <span className="h-1.5 w-1.5 rounded-full bg-yes pulse-dot" />
               Live on Stellar Testnet · {openMarkets} active markets
             </div>
           </motion.div>
 
           <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
-            className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6 leading-[1.05]">
+            className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6 leading-[1.05] [text-shadow:0_2px_40px_rgba(124,58,237,0.25)]">
             Predict Markets.
             <br />
             <span className="bg-gradient-to-r from-stellar-light via-purple-400 to-stellar-light bg-clip-text text-transparent">
@@ -185,6 +169,26 @@ export default function LandingPage() {
             </Button>
           </motion.div>
 
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.5 }}
+            className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
+            {[
+              { icon: Shield,     label: "Non-custodial" },
+              { icon: Zap,        label: "On-chain settlement" },
+              { icon: DollarSign, label: "Sub-cent fees" },
+              { icon: Activity,   label: "~5s finality" },
+            ].map(({ icon: Icon, label }) => (
+              <span key={label} className="inline-flex items-center gap-2">
+                <Icon className="h-4 w-4 text-stellar-light/80" />
+                {label}
+              </span>
+            ))}
+          </motion.div>
+
+        </div>
+
+        {/* Live Ticker — pinned to the bottom of the hero viewport */}
+        <div className="absolute inset-x-0 bottom-0 z-10">
+          <MarketTicker markets={tickerMarkets} />
         </div>
       </section>
 
