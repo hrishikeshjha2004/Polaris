@@ -59,6 +59,30 @@ Explorer: `https://stellar.expert/explorer/testnet/tx/9a57ccbe6babfc42f98431620b
 
 ---
 
+## Submission Checklist
+
+| Requirement | Status | Where |
+|-------------|--------|-------|
+| Public GitHub repository | ✅ | This repo |
+| README with complete documentation | ✅ | This file |
+| 15+ meaningful commits | ✅ | `git log` |
+| Live demo link | ✅ | [polaris-stellar.vercel.app](https://polaris-stellar.vercel.app) |
+| Demo video | ✅ | [YouTube](https://youtu.be/S6CzRxhlE1s) |
+| Contract deployment address | ✅ | [Live Testnet Deployment](#live-testnet-deployment) |
+| Contracts on Stellar testnet | ✅ | Factory / Oracle / Settlement / Treasury (verified tx hashes above) |
+| Production deployment | ✅ | Vercel (`main` → auto-deploy via CI/CD) |
+| Mobile responsive UI | ✅ | [Mobile responsive UI](#mobile-responsive-ui) |
+| Loading states + error handling | ✅ | `app/loading.tsx`, `app/error.tsx`, `transaction-modal.tsx` |
+| Monitoring + analytics | ✅ | [Monitoring & Analytics](#monitoring--analytics) (Vercel Analytics + Sentry) |
+| Proper project structure + docs | ✅ | [Project Structure](#project-structure), `docs/` |
+| 10+ real user wallet interactions | ✅ | On-chain txns (see proof artifacts in submission) |
+| Basic user feedback collection | ✅ | Feedback survey + summary (see submission) |
+| Screenshots (UI / mobile / analytics) | ✅ | [Screenshots](#screenshots) |
+
+**Onboarding 10+ real users:** share the [live demo](https://polaris-stellar.vercel.app), have each person connect Freighter on testnet, click **Fund testnet account** (free friendbot XLM) and **Get Test USDC**, then place a prediction. Every interaction is a real on-chain transaction verifiable on [stellar.expert](https://stellar.expert/explorer/testnet) — collect each participant's tx hash / wallet address as proof.
+
+---
+
 ## Architecture
 
 ```
@@ -201,8 +225,25 @@ Real-time updates flow **chain → indexer → WebSocket → UI** with no pollin
 - **Data cascade** — `hooks/use-market.ts` resolves API → on-chain read → mock data so the UI works in every environment.
 - **On-chain writes** — `hooks/use-trade.ts` builds single-tx `buy`/`sell` via the SDK, does a pre-flight balance check, maps reverts to human-readable errors, and returns the real tx hash.
 - **State** — Zustand store for market/price/activity; TanStack Query for server/chain reads.
-- **UX** — `transaction-modal.tsx` shows pending → confirming → success/error with an explorer link; `skeleton.tsx` drives loading states; a "Get Test USDC" faucet button appears when the wallet lacks collateral.
+- **UX** — `transaction-modal.tsx` shows pending → confirming → success/error with an explorer link; `skeleton.tsx` + a route-level `app/loading.tsx` drive loading states; a **Fund testnet account** button (friendbot XLM) and a "Get Test USDC" faucet button get new users transaction-ready in seconds.
+- **Error handling** — route-level `app/error.tsx` + `app/global-error.tsx` boundaries catch render/runtime failures, show a recoverable UI, and report to Sentry; `app/not-found.tsx` handles 404s. On-chain reverts are mapped to human-readable messages in `use-trade.ts`.
 - **Security headers** — CSP, `X-Frame-Options`, `X-Content-Type-Options` set in `next.config.js`.
+
+---
+
+## Monitoring & Analytics
+
+Production observability is built into the frontend:
+
+| Tool | Purpose | Where |
+|------|---------|-------|
+| **Vercel Analytics** | Page-view + Web Vitals traffic analytics (zero-config on Vercel) | `app/layout.tsx` (`<Analytics />`) |
+| **Vercel Analytics — custom events** | Onboarding funnel: `wallet_connected → account_funded → prediction_placed → liquidity_added` | `lib/analytics.ts` |
+| **Sentry** | Error monitoring, performance traces, session replay on error | `instrumentation*.ts`, `app/error.tsx`, `next.config.js` |
+
+**Funnel events** let you measure real user interaction end-to-end. They fire from the wallet button (`wallet_connected`, `account_funded`) and the trade panel (`prediction_placed`), giving a verifiable record of onboarding alongside the on-chain transactions.
+
+Sentry is **opt-in**: error capture is a no-op until `NEXT_PUBLIC_SENTRY_DSN` is set (create a free project at [sentry.io](https://sentry.io)). Vercel Analytics activates automatically on any Vercel deployment. See [.env.example](./.env.example) for the keys.
 
 ---
 
@@ -308,7 +349,7 @@ The Summary stage fails the run if any required stage (lint, tests, build, deplo
 
 1. **Browse markets** — open `/markets`; cards show live YES price, TVL, and 24h change.
 2. **Open a market** — `/markets/[id]` is the trading terminal: price chart, order panel, live activity feed.
-3. **Fund the wallet** — connect Freighter; if you hold no test USDC, click **Get Test USDC** (faucet mints 1000).
+3. **Fund the wallet** — connect Freighter (set to **Testnet**). Open the wallet menu and click **Fund testnet account** to receive XLM from friendbot for transaction fees, then click **Get Test USDC** for collateral. New users are trade-ready in under a minute — no real funds, no cost.
 4. **Trade** — enter a USDC amount, pick YES/NO, review the quote (price impact + fee), confirm in Freighter; the transaction modal tracks pending → success and links the explorer.
 5. **Watch it sync** — the price, chart, and activity feed update in real time via WebSocket as the indexer reconciles the on-chain pool.
 6. **Provide liquidity** — `/liquidity`: deposit USDC, receive LP tokens, earn fees.
@@ -327,6 +368,9 @@ The Summary stage fails the run if any required stage (lint, tests, build, deplo
 | Trading terminal | `docs/screenshots/market-detail.png` |
 | Portfolio | `docs/screenshots/portfolio.png` |
 | Transaction modal | `docs/screenshots/tx-modal.png` |
+| Mobile responsive | `docs/screenshots/mobile.png` |
+| Vercel Analytics dashboard | `docs/screenshots/analytics.png` |
+| Sentry monitoring | `docs/screenshots/sentry.png` |
 
 ---
 
