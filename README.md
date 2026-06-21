@@ -82,7 +82,7 @@ Full design in [ARCHITECTURE.md](./docs/ARCHITECTURE.md); contract reference in 
 ### Project Structure
 
 ```
-protocol/        Soroban smart contracts (Rust): factory, market, amm,
+contracts/       Soroban smart contracts (Rust): factory, market, amm,
                   oracle, settlement, token, treasury, shared
 frontend/         Next.js 14 trading frontend (TypeScript)
 packages/sdk/     Typed contract SDK (ScVal codecs, tx builders, clients)

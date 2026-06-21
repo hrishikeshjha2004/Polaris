@@ -343,7 +343,7 @@ frontend/
 │   └── useLiquidity.ts
 ├── lib/
 │   ├── stellar/                # Stellar SDK utils
-│   ├── protocol/              # Contract invocation helpers
+│   ├── contracts/              # Contract invocation helpers
 │   └── api/                    # Backend API client
 └── store/
     └── index.ts                # Zustand store
