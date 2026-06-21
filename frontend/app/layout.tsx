@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "@/components/layout/providers";
 import { Navbar } from "@/components/layout/navbar";
 import { Toaster } from "@/components/ui/toaster";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,6 +34,7 @@ export default function RootLayout({
             <main className="flex-1">{children}</main>
           </div>
           <Toaster />
+          <Analytics />
         </Providers>
       </body>
     </html>
