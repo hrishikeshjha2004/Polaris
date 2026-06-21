@@ -24,6 +24,7 @@ import { useTrade, type TradeSide } from "@/hooks/use-trade";
 import type { Market } from "@stellarpm/shared";
 import { formatUsd } from "@stellarpm/shared";
 import { cn } from "@/lib/utils";
+import { analytics } from "@/lib/analytics";
 
 interface TradePanelProps {
   market: Market;
@@ -94,6 +95,13 @@ export function TradePanel({ market, defaultOutcome = "yes" }: TradePanelProps) 
       const hash = await executeTrade();
       setTxHash(hash);
       setTxStatus("success");
+      if (side === "buy") {
+        analytics.predictionPlaced(
+          String(market.id),
+          outcome.toUpperCase() as "YES" | "NO",
+          parsedAmount
+        );
+      }
     } catch (err) {
       setTxError(err instanceof Error ? err.message : "Something went wrong.");
       setTxStatus("error");

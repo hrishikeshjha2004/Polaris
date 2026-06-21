@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Wallet, ChevronDown, LogOut, Copy, ExternalLink } from "lucide-react";
+import { Wallet, ChevronDown, LogOut, Copy, ExternalLink, Droplets } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,12 +13,48 @@ import {
 import { useWallet } from "@/hooks/use-wallet";
 import { useToast } from "@/components/ui/use-toast";
 import { truncateAddress } from "@stellarpm/shared";
+import { analytics } from "@/lib/analytics";
 
 export function WalletButton() {
-  const { isConnected, address, isConnecting, connectFreighter, disconnect } =
+  const { isConnected, address, isConnecting, connectFreighter, disconnect, fundAccount } =
     useWallet();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
+  const [isFunding, setIsFunding] = useState(false);
+
+  const handleConnect = async () => {
+    try {
+      const w = await connectFreighter();
+      if (w) analytics.walletConnected(w.address);
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        description: err instanceof Error ? err.message : "Wallet connection failed",
+      });
+    }
+  };
+
+  const handleFund = async () => {
+    if (!address) return;
+    setIsFunding(true);
+    try {
+      const funded = await fundAccount();
+      analytics.accountFunded(address);
+      toast({
+        description: funded
+          ? "Testnet account funded with 10,000 XLM — you're ready to trade!"
+          : "Account is already funded — you're good to go.",
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        description: err instanceof Error ? err.message : "Funding failed",
+      });
+    } finally {
+      setIsFunding(false);
+      setIsOpen(false);
+    }
+  };
 
   if (!isConnected) {
     return (
@@ -26,7 +62,7 @@ export function WalletButton() {
         variant="outline"
         size="sm"
         className="border-stellar/30 hover:border-stellar/60 hover:bg-stellar/10"
-        onClick={connectFreighter}
+        onClick={handleConnect}
         disabled={isConnecting}
       >
         {isConnecting ? (
@@ -67,6 +103,16 @@ export function WalletButton() {
         <DropdownMenuItem onClick={handleCopy}>
           <Copy className="mr-2 h-4 w-4" />
           Copy Address
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={(e) => {
+            e.preventDefault();
+            handleFund();
+          }}
+          disabled={isFunding}
+        >
+          <Droplets className="mr-2 h-4 w-4" />
+          {isFunding ? "Funding…" : "Fund testnet account"}
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <a

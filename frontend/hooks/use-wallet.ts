@@ -53,6 +53,28 @@ export function useWallet() {
     setWallet(null);
   }, [setWallet]);
 
+  // Fund the connected account with testnet XLM via Stellar friendbot so a
+  // brand-new user can pay transaction fees and start trading immediately.
+  // No-op on mainnet (friendbot is testnet-only).
+  const fundAccount = useCallback(async (): Promise<boolean> => {
+    if (!wallet) throw new Error("Wallet not connected");
+    if (STELLAR_NETWORK === "mainnet") {
+      throw new Error("Faucet funding is only available on testnet");
+    }
+    const res = await fetch(
+      `https://friendbot.stellar.org/?addr=${encodeURIComponent(wallet.address)}`
+    );
+    if (!res.ok) {
+      // 400 with "op_already_exists" means the account is already funded.
+      const body = await res.text().catch(() => "");
+      if (body.includes("already") || body.includes("op_already_exists")) {
+        return false; // already funded — not an error from the user's view
+      }
+      throw new Error("Friendbot funding failed — try again in a moment");
+    }
+    return true;
+  }, [wallet]);
+
   const signTransaction = useCallback(
     async (xdr: string): Promise<string> => {
       if (!wallet) throw new Error("Wallet not connected");
@@ -77,5 +99,6 @@ export function useWallet() {
     connectFreighter,
     disconnect,
     signTransaction,
+    fundAccount,
   };
 }
