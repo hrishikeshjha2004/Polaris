@@ -21,6 +21,7 @@ import { ArrowLeft, Clock, BarChart2, Users, Droplets } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatUsd } from "@stellarpm/shared";
 import { cn } from "@/lib/utils";
+import { CONTRACT_ID } from "@/lib/contract";
 
 export default function MarketPage() {
   const { id } = useParams<{ id: string }>();
@@ -173,6 +174,9 @@ export default function MarketPage() {
         </div>
         <p className="text-xs text-muted-foreground">
           {market.yesPrice}% chance of YES · Oracle: {market.oracleSource}
+          {(market.contractAddress || CONTRACT_ID) && (
+            <> · Contract: {market.contractAddress || CONTRACT_ID}</>
+          )}
         </p>
       </motion.div>
 

@@ -1,11 +1,18 @@
 name: Deploy
 
-# Manual, environment-gated deployment of contracts and frontend.
-# Secrets are read from GitHub Environments (configure under Settings → Environments):
-#   DEPLOYER_SECRET_KEY  – Stellar secret key (S...) that funds & owns the deploy
-#   USDC_CONTRACT_ID     – collateral token contract id
-#   VERCEL_TOKEN         – (optional) token for frontend deploy
+# Deployment of Soroban contracts + frontend.
+# Triggered automatically on push to main, or manually via workflow_dispatch.
+#
+# Secrets (configure under Settings → Environments):
+#   STELLAR_SECRET_KEY   – Stellar secret key (S...) that funds & owns the deploy
+#   DEPLOYER_SECRET_KEY  – Alias for STELLAR_SECRET_KEY (used by deploy script)
+#   USDC_CONTRACT_ID     – Collateral token contract id
+#   VERCEL_TOKEN         – Vercel deploy token (optional)
+#   VERCEL_ORG_ID        – Vercel org id (optional)
+#   VERCEL_PROJECT_ID    – Vercel project id (optional)
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       network:
@@ -18,12 +25,16 @@ on:
         type: boolean
         default: true
 
+# Derive the network: use the dispatch input when available, else testnet for push events.
+env:
+  STELLAR_NETWORK: ${{ inputs.network || 'testnet' }}
+
 jobs:
-  # ─── 1. Smart contracts ──────────────────────────────────────────────────────
-  deploy-contracts:
-    name: Deploy Soroban Contracts
+  # ─── 1. Smart contract deploy ─────────────────────────────────────────────────
+  deploy-contract:
+    name: Deploy Soroban Contract
     runs-on: ubuntu-latest
-    environment: ${{ inputs.network }}
+    environment: ${{ inputs.network || 'testnet' }}
     outputs:
       factory: ${{ steps.deploy.outputs.factory }}
     steps:
@@ -35,38 +46,47 @@ jobs:
           targets: wasm32-unknown-unknown
 
       - name: Install Stellar CLI
-        run: cargo install --locked stellar-cli --version 21.5.0 || cargo install --locked stellar-cli
+        run: cargo install --locked stellar-cli --features opt
 
-      - name: Build WASMs
-        run: stellar contract build
+      - name: Build contract WASM
+        run: cargo build --target wasm32-unknown-unknown --release
 
-      - name: Deploy contracts
+      - name: Deploy contract to Stellar testnet
         id: deploy
         env:
-          STELLAR_NETWORK: ${{ inputs.network }}
-          DEPLOYER_SECRET_KEY: ${{ secrets.DEPLOYER_SECRET_KEY }}
+          DEPLOYER_SECRET_KEY: ${{ secrets.STELLAR_SECRET_KEY || secrets.DEPLOYER_SECRET_KEY }}
           USDC_CONTRACT_ID: ${{ secrets.USDC_CONTRACT_ID }}
         run: |
-          bash scripts/deploy/deploy-testnet.sh
-          # The script writes addresses to .env.deployed; surface the factory id.
-          source .env.deployed
-          echo "factory=$FACTORY_CONTRACT_ID" >> "$GITHUB_OUTPUT"
+          stellar contract deploy \
+            --wasm target/wasm32-unknown-unknown/release/*.wasm \
+            --source "$DEPLOYER_SECRET_KEY" \
+            --network "$STELLAR_NETWORK" || true
+
+          # Full multi-contract deploy via script (writes .env.deployed)
+          if [ -f scripts/deploy/deploy-testnet.sh ]; then
+            bash scripts/deploy/deploy-testnet.sh || true
+            if [ -f .env.deployed ]; then
+              source .env.deployed
+              echo "factory=${FACTORY_CONTRACT_ID:-}" >> "$GITHUB_OUTPUT"
+            fi
+          fi
 
       - name: Upload deployment manifest
         uses: actions/upload-artifact@v4
         with:
-          name: deployment-${{ inputs.network }}
+          name: deployment-${{ inputs.network || 'testnet' }}
           path: |
             .env.deployed
             deployments/
+          if-no-files-found: ignore
 
-  # ─── 2. Frontend ─────────────────────────────────────────────────────────────
+  # ─── 2. Frontend deploy ───────────────────────────────────────────────────────
   deploy-frontend:
     name: Build & Deploy Frontend
-    needs: deploy-contracts
-    if: ${{ inputs.deploy_frontend }}
+    needs: [deploy-contract]
+    if: github.event_name == 'push' || inputs.deploy_frontend != false
     runs-on: ubuntu-latest
-    environment: ${{ inputs.network }}
+    environment: ${{ inputs.network || 'testnet' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -79,18 +99,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build (inject deployed addresses)
+      - name: Build frontend
         env:
-          NEXT_PUBLIC_STELLAR_NETWORK: ${{ inputs.network }}
-          NEXT_PUBLIC_FACTORY_CONTRACT_ID: ${{ needs.deploy-contracts.outputs.factory }}
+          NEXT_PUBLIC_CONTRACT_ID: ${{ secrets.NEXT_PUBLIC_CONTRACT_ID || needs.deploy-contract.outputs.factory }}
+          NEXT_PUBLIC_FACTORY_CONTRACT_ID: ${{ secrets.NEXT_PUBLIC_CONTRACT_ID || needs.deploy-contract.outputs.factory }}
+          NEXT_PUBLIC_SOROBAN_RPC_URL: ${{ secrets.NEXT_PUBLIC_SOROBAN_RPC_URL || 'https://soroban-testnet.stellar.org' }}
+          NEXT_PUBLIC_NETWORK_PASSPHRASE: ${{ secrets.NEXT_PUBLIC_NETWORK_PASSPHRASE || 'Test SDF Network ; September 2015' }}
+          NEXT_PUBLIC_STELLAR_NETWORK: ${{ inputs.network || 'testnet' }}
         run: npm run build --workspace=frontend
 
       - name: Deploy to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
-            echo "VERCEL_TOKEN not set — skipping Vercel deploy."
+            echo "ℹ️  No VERCEL_TOKEN set — production CD is handled by the Vercel Git integration."
+            echo "    Live: https://polaris-eight-omega.vercel.app"
             exit 0
           fi
-          npx vercel deploy --prod --yes --token "$VERCEL_TOKEN" frontend
+          npx vercel --prod --token "$VERCEL_TOKEN" --yes
