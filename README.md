@@ -121,6 +121,93 @@ scripts/deploy/   Deployment + seed + verify scripts
 
 ---
 
+## Smart Contract ↔ Frontend Integration
+
+The frontend and backend talk to the on-chain contracts through the typed SDK in
+[`packages/sdk/`](./packages/sdk) and the direct Soroban helpers in
+[`frontend/lib/`](./frontend/lib). **Every contract call goes through
+[`@stellar/stellar-sdk`](https://www.npmjs.com/package/@stellar/stellar-sdk)** — building,
+simulating, signing, and submitting Soroban transactions.
+
+### Where the integration lives
+
+| File | Role |
+|------|------|
+| [`packages/sdk/src/clients/amm.ts`](./packages/sdk/src/clients/amm.ts) | Typed `AmmClient` — `buy`, `sell`, `add_liquidity_usdc`, `remove_liquidity_usdc`, `get_buy_quote`, `get_pool_state`, `get_reserves` |
+| [`packages/sdk/src/clients/factory.ts`](./packages/sdk/src/clients/factory.ts) | `MarketFactory` client — `create_market`, reads |
+| [`packages/sdk/src/clients/market.ts`](./packages/sdk/src/clients/market.ts) | Per-market client |
+| [`packages/sdk/src/clients/token.ts`](./packages/sdk/src/clients/token.ts) | Token (YES/NO/LP/USDC) client |
+| [`packages/sdk/src/tx.ts`](./packages/sdk/src/tx.ts) · [`scval.ts`](./packages/sdk/src/scval.ts) | tx build / simulate / submit + ScVal codecs (`@stellar/stellar-sdk`) |
+| [`frontend/lib/stellar-sdk.ts`](./frontend/lib/stellar-sdk.ts) | Soroban RPC `Server` from `@stellar/stellar-sdk` |
+| [`frontend/lib/contract.ts`](./frontend/lib/contract.ts) | `callContractFunction()` / `readContractValue()` — invoke + simulate any contract method |
+| [`frontend/hooks/use-trade.ts`](./frontend/hooks) | Wires the trade panel UI to `AmmClient.buy/sell` |
+
+### Frontend uses `@stellar/stellar-sdk` directly
+
+`frontend/lib/stellar-sdk.ts` constructs the Soroban RPC client:
+
+```ts
+import * as StellarSdk from "@stellar/stellar-sdk";
+import { rpc, Networks } from "@stellar/stellar-sdk";
+
+export const networkPassphrase =
+  process.env.NEXT_PUBLIC_NETWORK_PASSPHRASE || Networks.TESTNET;
+export const server = new rpc.Server(RPC_URL, { allowHttp: false });
+```
+
+`frontend/lib/contract.ts` builds, simulates, signs, and submits a contract invocation:
+
+```ts
+import * as StellarSdk from "@stellar/stellar-sdk";
+import { rpc } from "@stellar/stellar-sdk";
+const { TransactionBuilder, BASE_FEE, Operation, Keypair } = StellarSdk;
+
+export async function callContractFunction(contractId, method, args, signerSecret) {
+  const account = await server.getAccount(Keypair.fromSecret(signerSecret).publicKey());
+  const tx = new TransactionBuilder(account, { fee: BASE_FEE, networkPassphrase })
+    .addOperation(Operation.invokeContractFunction({ contract: contractId, function: method, args }))
+    .setTimeout(30).build();
+  const sim = await server.simulateTransaction(tx);
+  const assembled = rpc.assembleTransaction(tx, sim).build();
+  // …sign + server.sendTransaction(assembled) + poll getTransaction…
+}
+```
+
+The SDK's `AmmClient` (`packages/sdk/src/clients/amm.ts`) wraps the same library:
+
+```ts
+import { rpc, xdr } from "@stellar/stellar-sdk";
+
+export class AmmClient {
+  async buildBuyTx(p: BuyTxParams)   { /* invokes contract method "buy"  */ }
+  async buildSellTx(p: SellTxParams) { /* invokes contract method "sell" */ }
+  async getPoolState()               { /* simulates "get_pool_state"     */ }
+  async getBuyQuote(...)             { /* simulates "get_buy_quote"      */ }
+}
+```
+
+### Cross-check — frontend functions ↔ `contracts/amm/src/lib.rs`
+
+Every AMM contract entrypoint has a matching SDK/frontend call. The method **string** sent
+on-chain is identical to the Rust `pub fn` name:
+
+| `contracts/amm/src/lib.rs` (`pub fn`) | On-chain method string | SDK / frontend caller |
+|---------------------------------------|------------------------|------------------------|
+| `initialize(...)`            | `"initialize"`            | `FactoryClient.createMarketTx` → child init |
+| `buy(...)`                   | `"buy"`                   | `AmmClient.buildBuyTx` ([amm.ts:161](./packages/sdk/src/clients/amm.ts)) → `use-trade.ts` |
+| `sell(...)`                  | `"sell"`                  | `AmmClient.buildSellTx` ([amm.ts:180](./packages/sdk/src/clients/amm.ts)) → `use-trade.ts` |
+| `add_liquidity_usdc(...)`    | `"add_liquidity_usdc"`    | `AmmClient.buildAddLiquidityTx` ([amm.ts:199](./packages/sdk/src/clients/amm.ts)) → `/liquidity` |
+| `remove_liquidity_usdc(...)` | `"remove_liquidity_usdc"` | `AmmClient.buildRemoveLiquidityTx` ([amm.ts:216](./packages/sdk/src/clients/amm.ts)) |
+| `get_buy_quote(...)`         | `"get_buy_quote"`         | `AmmClient.getBuyQuote` ([amm.ts:97](./packages/sdk/src/clients/amm.ts)) |
+| `get_pool_state()`          | `"get_pool_state"`        | `AmmClient.getPoolState` ([amm.ts:110](./packages/sdk/src/clients/amm.ts)) → indexer |
+| `get_reserves()`            | `"get_reserves"`          | `AmmClient.getReserves` ([amm.ts:122](./packages/sdk/src/clients/amm.ts)) |
+
+`backend/indexer/src/pool-reader.ts` and `backend/workers/oracle/` also import
+`@stellar/stellar-sdk` to read pool state and submit oracle resolutions, so the same contract
+ABI is exercised from the frontend SDK, the indexer, and the worker.
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |
@@ -315,6 +402,81 @@ graph LR
 | ✅ **Pipeline Summary** | renders the diagram + per-stage results into the run summary and **gates** the run |
 
 The Summary stage fails the run if any required stage (lint, tests, build, deploy) fails. `.github/workflows/deploy.yml` is a separate manually-dispatched, environment-gated workflow for deploying the Soroban contracts with secrets from a GitHub Environment.
+
+### CI — Smart Contract job (`.github/workflows/ci.yml`)
+
+Runs `cargo test` **and** builds the contract WASM on the `wasm32-unknown-unknown` target:
+
+```yaml
+contracts:
+  name: 🦀 Smart Contract
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - name: Setup Rust toolchain with wasm32-unknown-unknown
+      uses: dtolnay/rust-toolchain@stable
+      with: { targets: wasm32-unknown-unknown }
+    - name: Run contract tests
+      run: cargo test
+    - name: Build contract WASM
+      run: cargo build --target wasm32-unknown-unknown --release
+```
+
+### CI — Frontend job (`.github/workflows/ci.yml`)
+
+A single frontend job runs **install → lint → build → test** (all four explicit steps):
+
+```yaml
+frontend:
+  name: ⚛️ Frontend
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with: { node-version: "20", cache: "npm" }
+    - name: Install dependencies
+      run: npm ci
+    - name: Lint
+      run: npm run lint --workspace=frontend
+    - name: Build
+      run: npm run build --workspace=frontend
+    - name: Test
+      run: npm run test --workspace=frontend
+```
+
+### CD — Contract + Frontend deploy (`.github/workflows/deploy.yml`)
+
+Triggered on push to `main` and via `workflow_dispatch`. Job 1 deploys the Soroban contracts;
+job 2 builds and deploys the frontend to Vercel:
+
+```yaml
+jobs:
+  deploy-contract:                      # ── 1. Smart contract CD
+    steps:
+      - run: cargo install --locked stellar-cli --features opt
+      - run: cargo build --target wasm32-unknown-unknown --release
+      - run: stellar contract deploy --wasm target/.../release/*.wasm \
+               --source "$DEPLOYER_SECRET_KEY" --network "$STELLAR_NETWORK"
+  deploy-frontend:                      # ── 2. Frontend CD
+    needs: [deploy-contract]
+    steps:
+      - run: npm ci
+      - run: npm run build --workspace=frontend
+      - run: npx vercel --prod --token "$VERCEL_TOKEN" --yes
+```
+
+Frontend CD is also wired through [`vercel.json`](./vercel.json) (Vercel Git integration
+auto-deploys every push to `main`):
+
+```json
+{
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build --workspace=frontend",
+  "outputDirectory": "frontend/.next"
+}
+```
 
 ---
 
