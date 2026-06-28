@@ -111,3 +111,36 @@ the script at `../scripts/deploy/deploy-testnet.sh`.
 - **Testnet passphrase:** `Test SDF Network ; September 2015`
 - **Mainnet RPC:** `https://soroban.stellar.org`
 - **Mainnet passphrase:** `Public Global Stellar Network ; September 2015`
+
+## Frontend integration (uses `@stellar/stellar-sdk`)
+
+These contracts are invoked from the TypeScript frontend through the typed SDK, which builds,
+simulates, signs and submits Soroban transactions with **`@stellar/stellar-sdk`**:
+
+| Integration file | Role |
+|---|---|
+| `../packages/sdk/src/clients/amm.ts` | `AmmClient` — `import { rpc, xdr } from "@stellar/stellar-sdk"` |
+| `../packages/sdk/src/clients/factory.ts` / `market.ts` / `token.ts` | factory / market / token clients |
+| `../packages/sdk/src/tx.ts`, `scval.ts` | tx build/simulate/submit + ScVal codecs (`@stellar/stellar-sdk`) |
+| `../frontend/lib/stellar-sdk.ts` | `new rpc.Server(RPC_URL)` (`@stellar/stellar-sdk`) |
+| `../frontend/lib/contract.ts` | `callContractFunction()` / `readContractValue()` |
+| `../frontend/hooks/use-trade.ts` | trade UI → `buildBuyTx` / `buildSellTx` |
+
+### Cross-check — `amm/src/lib.rs` ↔ frontend
+
+| `amm/src/lib.rs` `pub fn` | on-chain method | frontend / SDK caller |
+|---|---|---|
+| `buy` | `"buy"` | `AmmClient.buildBuyTx` → `use-trade.ts` |
+| `sell` | `"sell"` | `AmmClient.buildSellTx` → `use-trade.ts` |
+| `add_liquidity_usdc` | `"add_liquidity_usdc"` | `AmmClient.buildAddLiquidityTx` |
+| `remove_liquidity_usdc` | `"remove_liquidity_usdc"` | `AmmClient.buildRemoveLiquidityTx` |
+| `get_buy_quote` | `"get_buy_quote"` | `AmmClient.getBuyQuote` |
+| `get_pool_state` | `"get_pool_state"` | `AmmClient.getPoolState` |
+| `get_reserves` | `"get_reserves"` | `AmmClient.getReserves` |
+
+## CI/CD (`.github/workflows`)
+
+- **`ci.yml` — Smart-contract CI:** `cargo test` + `cargo build --target wasm32-unknown-unknown --release`.
+- **`ci.yml` — Frontend CI:** `npm ci` → `npm run lint` → `npm run build` → `npm run test` (`--workspace=frontend`).
+- **`deploy.yml` — CD:** `deploy-contract` (`stellar contract deploy`) then `deploy-frontend` (`npm run build` → `vercel --prod`).
+- **`vercel.json` — CD:** Vercel Git integration auto-deploys the frontend on every push to `main`.

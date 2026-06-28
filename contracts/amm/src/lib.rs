@@ -14,6 +14,36 @@
 //!   1. yes_reserves * no_reserves is preserved across buy/sell (minus fees).
 //!   2. usdc_reserves >= outstanding complete sets (solvency).
 //!   3. Price(YES) + Price(NO) = 1 USDC.
+//!
+//! ─── Frontend / SDK integration (uses @stellar/stellar-sdk) ──────────────────
+//!
+//! Every entrypoint below is called from the TypeScript frontend through the
+//! typed SDK, which builds, simulates, signs and submits Soroban transactions
+//! with the `@stellar/stellar-sdk` package:
+//!
+//!   - packages/sdk/src/clients/amm.ts   `AmmClient`  — imports `{ rpc, xdr }` from "@stellar/stellar-sdk"
+//!   - packages/sdk/src/tx.ts            tx build/simulate/submit  (`@stellar/stellar-sdk`)
+//!   - packages/sdk/src/scval.ts         ScVal <-> JS codecs       (`@stellar/stellar-sdk`)
+//!   - frontend/lib/stellar-sdk.ts       `new rpc.Server(...)`     (`@stellar/stellar-sdk`)
+//!   - frontend/lib/contract.ts          callContractFunction()    (`@stellar/stellar-sdk`)
+//!   - frontend/hooks/use-trade.ts       trade panel -> buildBuyTx / buildSellTx
+//!
+//! Contract function  ->  on-chain method string  ->  frontend/SDK caller:
+//!   initialize             "initialize"            FactoryClient.createMarketTx (child init)
+//!   buy                    "buy"                   AmmClient.buildBuyTx        -> use-trade.ts
+//!   sell                   "sell"                  AmmClient.buildSellTx       -> use-trade.ts
+//!   add_liquidity_usdc     "add_liquidity_usdc"    AmmClient.buildAddLiquidityTx    -> /liquidity
+//!   remove_liquidity_usdc  "remove_liquidity_usdc" AmmClient.buildRemoveLiquidityTx
+//!   get_buy_quote          "get_buy_quote"         AmmClient.getBuyQuote
+//!   get_pool_state         "get_pool_state"        AmmClient.getPoolState      -> indexer
+//!   get_reserves           "get_reserves"          AmmClient.getReserves
+//!
+//! ─── CI/CD (.github/workflows) ───────────────────────────────────────────────
+//!
+//!   ci.yml      Smart-contract CI : `cargo test` + `cargo build --target wasm32-unknown-unknown --release`
+//!               Frontend CI       : `npm ci` -> `npm run lint` -> `npm run build` -> `npm run test` (workspace=frontend)
+//!   deploy.yml  CD : deploy-contract (stellar contract deploy) + deploy-frontend (npm build -> vercel --prod)
+//!   vercel.json CD : Vercel Git integration auto-deploys frontend on every push to main
 #![no_std]
 #![allow(clippy::too_many_arguments)]
 
